@@ -12,16 +12,19 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import com.example.smartbottle.core.presentation.ui.theme.SmartBottleTheme
+import org.koin.androidx.compose.koinViewModel
 
 @Composable
 fun LoginScreen(
-    viewmodel : LoginViewModel = LoginViewModel(),
-    onNavigation : () -> Unit
+    viewmodel : LoginViewModel = koinViewModel(),
+    onNavigation : () -> Unit,
+    onRegister : () -> Unit,
 ){
     LoginScreenCore(
         state = viewmodel.state,
         onAction = viewmodel::onAction,
-        onNavigation
+        onNavigation,
+        onRegister
     )
 }
 
@@ -29,7 +32,8 @@ fun LoginScreen(
 private fun LoginScreenCore(
     state : LoginState,
     onAction : (LoginAction) -> Unit,
-    onNavigation : () -> Unit
+    onNavigation : () -> Unit,
+    onRegister : () -> Unit
 ){
     Column(
         modifier = Modifier.fillMaxSize(),
@@ -44,6 +48,12 @@ private fun LoginScreenCore(
             onValueChange = { onAction(LoginAction.ChangeEmail(it)) },
             label = { Text(text = "Email") })
 
+        OutlinedTextField(
+            value = state.password,
+            onValueChange = { onAction(LoginAction.ChangePassword(it)) },
+            label = { Text(text = "Password") }
+        )
+
         Button(
             modifier = Modifier.fillMaxWidth(),
             onClick = {
@@ -51,6 +61,14 @@ private fun LoginScreenCore(
             onNavigation()
         }) {
             Text(text = "Login")
+        }
+
+        Button(
+            modifier = Modifier.fillMaxWidth(),
+            onClick = {
+                onRegister()
+            }) {
+            Text(text = "Register")
         }
 
     }
@@ -61,6 +79,6 @@ private fun LoginScreenCore(
 private fun PreviewLoginScreenCore(){
 
     SmartBottleTheme {
-        LoginScreenCore(state = LoginState(), onAction = {{}}, onNavigation = {})
+        LoginScreenCore(state = LoginState(), onAction = {}, onNavigation = {}, onRegister = {})
     }
 }

@@ -19,7 +19,7 @@ class HistoryRepositoryImpl(
 
     private val tag = "NewsRepository: "
 
-    private val baseUrl = "http://127.0.0.1:8000"
+    private val baseUrl = "http://192.168.0.8:8000"
 
     private suspend fun getLocalHistory(): HistoryList{
         val localHistory = dao.getHistoryList()

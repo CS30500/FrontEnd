@@ -5,8 +5,6 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -17,9 +15,6 @@ import androidx.navigation.compose.rememberNavController
 import com.example.smartbottle.auth.presentation.login.LoginScreen
 import com.example.smartbottle.auth.presentation.signup.RegisterScreen
 import com.example.smartbottle.core.presentation.ui.theme.SmartBottleTheme
-import com.example.smartbottle.history.presentation.HistoryScreen
-import com.example.smartbottle.profile.presentation.ProfileScreen
-import com.example.smartbottle.water.presentation.HomeScreen
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -57,11 +52,18 @@ fun Navigation(modifier: Modifier = Modifier) {
                 LoginScreen(
                     onNavigation = {
                         navController.navigate(SubGraph.Main)
+                    },
+                    onRegister = {
+                        navController.navigate(Screen.RegisterScreen)
                     }
                 )
             }
             composable<Screen.RegisterScreen>{
-                RegisterScreen()
+                RegisterScreen(
+                    onNavigation = {
+                        navController.navigate(Screen.LoginScreen)
+                    }
+                )
             }
         }
 
