@@ -51,7 +51,11 @@ fun Navigation(modifier: Modifier = Modifier) {
             composable<Screen.LoginScreen>{
                 LoginScreen(
                     onNavigation = {
-                        navController.navigate(SubGraph.Main)
+                        navController.navigate(SubGraph.Main) {
+                            popUpTo(Screen.LoginScreen) {
+                                inclusive = true
+                            }
+                        }
                     },
                     onRegister = {
                         navController.navigate(Screen.RegisterScreen)
