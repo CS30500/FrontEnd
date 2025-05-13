@@ -10,6 +10,7 @@ import io.ktor.client.call.body
 import io.ktor.client.request.get
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
+import kotlin.coroutines.cancellation.CancellationException
 
 class HistoryRepositoryImpl(
     private val httpClient: HttpClient,
@@ -43,6 +44,7 @@ class HistoryRepositoryImpl(
                 getRemoteHistory()
             } catch (e: Exception) {
                 e.printStackTrace()
+                if(e is CancellationException) throw e
                 println(tag + "getHistory: $e")
                 null
             }

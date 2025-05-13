@@ -4,22 +4,54 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.example.smartbottle.history.domain.HistoryRepository
+import com.example.smartbottle.history.domain.HistoryResult
+import kotlinx.coroutines.launch
 
-class HistoryViewModel : ViewModel() {
+class HistoryViewModel(
+    private val historyRepository: HistoryRepository
+) : ViewModel() {
 
     var state by mutableStateOf(HistoryState())
         private set
 
+    init{
+        loadHistory()
+    }
+
     fun onAction(action: HistoryAction) {
-        when(action) {
-            is HistoryAction.LoadHistory -> {
-                state = state.copy(isLoading = true)
-                getHistory()
+
+    }
+
+
+
+    private fun loadHistory(){
+        viewModelScope.launch {
+            state = state.copy(
+                isLoading = true
+            )
+
+            historyRepository.getHistory().collect{ result ->
+                when(result){
+                    is HistoryResult.Error -> {
+                        state = state.copy(
+                            isError = true
+                        )
+
+                    }
+                    is HistoryResult.Success -> {
+                        state = state.copy(
+                            isError = false,
+                            historyList = result.data?.history ?: emptyList()
+                            )
+                    }
+                }
             }
-            }
+
+            state = state.copy(
+                isLoading = false
+            )
         }
-
-    private fun getHistory(){
-
     }
 }

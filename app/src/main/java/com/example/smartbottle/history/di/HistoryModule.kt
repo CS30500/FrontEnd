@@ -1,5 +1,8 @@
 import androidx.room.Room
+import com.example.smartbottle.history.data.HistoryRepositoryImpl
 import com.example.smartbottle.history.data.local.HistoryDatabase
+import com.example.smartbottle.history.domain.HistoryRepository
+import com.example.smartbottle.history.presentation.HistoryViewModel
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.cio.CIO
 import io.ktor.client.engine.cio.endpoint
@@ -14,9 +17,21 @@ import io.ktor.http.HttpHeaders
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
 import org.koin.android.ext.koin.androidApplication
+import org.koin.androidx.viewmodel.dsl.viewModel
+import org.koin.dsl.bind
 import org.koin.dsl.module
 
 val HistoryModule = module {
+
+    viewModel{ HistoryViewModel(get())}
+
+    single {
+        HistoryRepositoryImpl(
+            httpClient = get(),
+            dao = get()
+        )
+    }.bind<HistoryRepository>()
+
     single {
         Room.databaseBuilder(
             androidApplication(),
@@ -65,5 +80,6 @@ val HistoryModule = module {
             }
         }
     }
+
 
 }

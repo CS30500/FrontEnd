@@ -7,10 +7,13 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.Preview
+import com.example.smartbottle.core.presentation.ui.theme.SmartBottleTheme
+import org.koin.androidx.compose.koinViewModel
 
 @Composable
 fun HistoryScreen(
-    viewmodel : HistoryViewModel = HistoryViewModel(),
+    viewmodel : HistoryViewModel = koinViewModel(),
     onNavigation : () -> Unit
 ){
     HistoryScreenCore(
@@ -32,5 +35,17 @@ private fun HistoryScreenCore(
         verticalArrangement = Arrangement.Center
     ) {
         Text(text = "History Screen")
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun HistoryScreenPreview(){
+    SmartBottleTheme {
+        HistoryScreenCore(
+            state = HistoryState(),
+            onAction = {},
+            onNavigation = {}
+        )
     }
 }

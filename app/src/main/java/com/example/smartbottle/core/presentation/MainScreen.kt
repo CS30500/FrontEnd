@@ -36,19 +36,21 @@ fun MainScreen(navController: NavHostController = rememberNavController()){
 
     val items = listOf(
         BottomNavigationItem(
-            title = "Home",
-            route = Screen.HomeScreen::class,
-            selectedIcon = Icons.Filled.Home,
-            unselectedIcon = Icons.Outlined.Home,
-            hasNews = false,
-        ),
-        BottomNavigationItem(
             title = "History",
             route = Screen.HistoryScreen::class,
             selectedIcon = Icons.Filled.List,
             unselectedIcon = Icons.Outlined.List,
             hasNews = false,
         ),
+
+        BottomNavigationItem(
+            title = "Home",
+            route = Screen.HomeScreen::class,
+            selectedIcon = Icons.Filled.Home,
+            unselectedIcon = Icons.Outlined.Home,
+            hasNews = false,
+        ),
+
         BottomNavigationItem(
             title = "Profile",
             route = Screen.ProfileScreen::class,
@@ -122,7 +124,9 @@ fun MainNavHost(modifier: Modifier, navController: NavHostController){
         }
 
         composable<Screen.HistoryScreen>{
-            HistoryScreen()
+            HistoryScreen(
+                onNavigation = {navController.navigate(Screen.NotificationScreen)}
+            )
         }
 
         composable<Screen.NotificationScreen>{
