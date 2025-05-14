@@ -4,6 +4,7 @@ import android.util.Log
 import okhttp3.*
 import org.json.JSONObject
 import java.io.IOException
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
 
 class BleRepository(private val accessToken: String) {
 
