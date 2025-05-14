@@ -15,7 +15,8 @@ val HistoryModule = module {
     single {
         HistoryRepositoryImpl(
             httpClient = get(),
-            dao = get()
+            dao = get(),
+            prefs = get()
         )
     }.bind<HistoryRepository>()
 

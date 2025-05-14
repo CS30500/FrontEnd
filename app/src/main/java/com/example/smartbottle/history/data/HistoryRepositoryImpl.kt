@@ -1,6 +1,9 @@
 package com.example.smartbottle.history.data
 
+import android.content.SharedPreferences
+import com.example.smartbottle.core.data.NetworkConstants
 import com.example.smartbottle.history.data.local.HistoryDao
+import com.example.smartbottle.history.data.remote.HistoryItemDto
 import com.example.smartbottle.history.data.remote.HistoryListDto
 import com.example.smartbottle.history.domain.HistoryList
 import com.example.smartbottle.history.domain.HistoryRepository
@@ -8,18 +11,21 @@ import com.example.smartbottle.history.domain.HistoryResult
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.request.get
+import io.ktor.client.request.header
+import io.ktor.client.statement.bodyAsText
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlin.coroutines.cancellation.CancellationException
 
 class HistoryRepositoryImpl(
     private val httpClient: HttpClient,
-    private val dao: HistoryDao
+    private val dao: HistoryDao,
+    private val prefs: SharedPreferences
 ) : HistoryRepository {
 
-    private val tag = "NewsRepository: "
+    private val tag = "HistoryRepository: "
 
-    private val baseUrl = "http://192.168.0.8:8000"
+    private val baseUrl = NetworkConstants.BASE_URL
 
     private suspend fun getLocalHistory(): HistoryList{
         val localHistory = dao.getHistoryList()
@@ -32,11 +38,33 @@ class HistoryRepositoryImpl(
         return historyList
     }
 
-    private suspend fun getRemoteHistory(): HistoryList{
-        val historyListDto : HistoryListDto = httpClient.get("$baseUrl/hydration/monthly").body()
-        println(tag + "getRemoteHistory: $historyListDto")
+    private suspend fun getRemoteHistory(): HistoryList {
+        // 로그인 시 저장된 JWT 토큰을 가져옴
+        val token = prefs.getString("jwt", null) ?: throw IllegalStateException("토큰이 없습니다.")
+
+        // 1) 서버 요청 후, HttpResponse를 통째로 받아 세부 정보 확인
+        val httpResponse = httpClient.get("$baseUrl/hydration/monthly") {
+            header("Authorization", "Bearer $token")
+        }
+
+        // 2) 상태 코드, 헤더 로그로 확인 (서버 상태가 200인지, 권한 에러가 아닌지 점검)
+        println("$tag getRemoteHistory status: ${httpResponse.status}")
+        println("$tag getRemoteHistory headers: ${httpResponse.headers}")
+
+        // 3) 실제 응답의 원본 문자열(JSON 등)를 한 번 출력해보기
+        val rawBody = httpResponse.bodyAsText()
+        println("$tag getRemoteHistory rawBody: $rawBody")
+
+        // 4) 필요한 DTO 형태로 파싱 (List<HistoryItemDto>)
+        val dtoList: List<HistoryItemDto> = httpResponse.body()
+
+        // 5) HistoryListDto(내부에 history 필드)를 만들어서 최종 변환
+        val historyListDto = HistoryListDto(history = dtoList)
+
+        // 6) toHistoryList()로 도메인 모델(HistoryList)로 변환
         return historyListDto.toHistoryList()
     }
+
 
     override suspend fun getHistory(): Flow<HistoryResult<HistoryList>> {
         return flow{
