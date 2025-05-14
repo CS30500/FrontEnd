@@ -33,6 +33,10 @@ fun HomeScreen(
     LaunchedEffect(Unit) {
         bleManager.startScan()
     }
+
+    Column {
+        Text("BLE 데이터: $bleData") // ✅ 화면에 보일 부분
+    }
     // juyoung modify
 
 
