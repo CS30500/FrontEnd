@@ -1,5 +1,4 @@
-
-package com.yourapp.ble
+package com.example.smartbottle.ble
 
 import android.bluetooth.*
 import android.bluetooth.le.*

@@ -1,4 +1,4 @@
-package com.yourapp.ble
+package com.example.smartbottle.ble
 import java.util.UUID
 
 object BleConstants {

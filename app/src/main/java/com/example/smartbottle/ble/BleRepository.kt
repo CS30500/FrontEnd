@@ -1,4 +1,4 @@
-package com.yourapp.ble
+package com.example.smartbottle.ble
 
 import android.util.Log
 import okhttp3.*
