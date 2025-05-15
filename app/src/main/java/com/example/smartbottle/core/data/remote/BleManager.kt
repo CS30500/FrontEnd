@@ -1,4 +1,4 @@
-package com.example.smartbottle.ble
+package com.example.smartbottle.core.data.remote
 
 import android.bluetooth.*
 import android.bluetooth.le.*
