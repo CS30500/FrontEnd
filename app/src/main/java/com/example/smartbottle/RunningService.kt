@@ -4,12 +4,13 @@ import android.app.Service
 import android.content.Intent
 import android.os.IBinder
 import androidx.core.app.NotificationCompat
-import com.example.smartbottle.core.data.remote.BleManager
+import com.example.smartbottle.core.domain.CoreRepository
+import org.koin.android.ext.android.inject
 
 
-class RunningService :  Service() {
+class RunningService() :  Service() {
 
-    private lateinit var bleManager: BleManager
+    private val coreRepository: CoreRepository by inject()
 
     override fun onBind(p0: Intent?): IBinder? {
         return null
@@ -17,10 +18,7 @@ class RunningService :  Service() {
 
     override fun onCreate() {
         super.onCreate()
-
-        bleManager = BleManager(this)
-
-        bleManager.startScan()
+        coreRepository.bleConnect()
 
     }
 
@@ -44,7 +42,7 @@ class RunningService :  Service() {
     }
 
     override fun onDestroy() {
-        bleManager.disconnect()
+        coreRepository.bleDisconnect()
         super.onDestroy()
 
     }
