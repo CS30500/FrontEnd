@@ -5,6 +5,7 @@ import androidx.core.content.edit
 import com.example.smartbottle.auth.data.remote.TokenResponse
 import com.example.smartbottle.auth.domain.AuthRepository
 import com.example.smartbottle.auth.domain.AuthResult
+import com.example.smartbottle.core.data.NetworkConstants
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.plugins.ClientRequestException
@@ -21,7 +22,7 @@ class AuthRepositoryImpl(
     private val prefs: SharedPreferences
 ) : AuthRepository {
 
-    private val baseUrl = "http://192.168.0.8:8000"
+    private val baseUrl = NetworkConstants.BASE_URL
 
     override suspend fun login(email: String, password: String): AuthResult<Unit>{
         return try {

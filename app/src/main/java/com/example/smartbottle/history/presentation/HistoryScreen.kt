@@ -34,7 +34,13 @@ private fun HistoryScreenCore(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        Text(text = "History Screen")
+        val firstItem = state.historyList.firstOrNull()
+        if (firstItem == null) {
+            Text("데이터가 없습니다.")
+        } else {
+            // 정상적으로 가져온 firstItem에 대한 UI 처리
+            Text("시간: ${firstItem.date}")
+        }
     }
 }
 

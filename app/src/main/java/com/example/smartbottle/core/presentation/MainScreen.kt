@@ -120,7 +120,9 @@ fun MainNavHost(modifier: Modifier, navController: NavHostController){
         }
 
         composable<Screen.ProfileScreen>{
-            ProfileScreen()
+            ProfileScreen(
+                onNavigation = {navController.navigate(Screen.NotificationScreen)}
+            )
         }
 
         composable<Screen.HistoryScreen>{
