@@ -1,22 +1,31 @@
 package com.example.smartbottle.core.presentation
 
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.BarChart
+import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.outlined.BarChart
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.List
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationBarItemColors
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.unit.dp
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
@@ -24,7 +33,6 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import com.example.smartbottle.auth.presentation.signup.RegisterScreen
 import com.example.smartbottle.history.presentation.HistoryScreen
 import com.example.smartbottle.notification.presentation.NotificationScreen
 import com.example.smartbottle.profile.presentation.ProfileScreen
@@ -38,8 +46,8 @@ fun MainScreen(navController: NavHostController = rememberNavController()){
         BottomNavigationItem(
             title = "History",
             route = Screen.HistoryScreen::class,
-            selectedIcon = Icons.Filled.List,
-            unselectedIcon = Icons.Outlined.List,
+            selectedIcon = Icons.Filled.BarChart,
+            unselectedIcon = Icons.Outlined.BarChart,
             hasNews = false,
         ),
 
@@ -70,7 +78,11 @@ fun MainScreen(navController: NavHostController = rememberNavController()){
             val bottomBarDestination = items.any { it.route.qualifiedName== currentDestination?.route }
 
             if(bottomBarDestination) {
-                NavigationBar() {
+                NavigationBar(
+                    containerColor = Color.White,
+                    tonalElevation = 0.dp,
+                    modifier = Modifier.shadow(8.dp)
+                ) {
                     items.forEachIndexed { index, item ->
                         NavigationBarItem(
                             selected = currentDestination?.hierarchy?.any {
@@ -93,9 +105,19 @@ fun MainScreen(navController: NavHostController = rememberNavController()){
 
                                 Icon(
                                     imageVector = if(index == 0) item.selectedIcon else item.unselectedIcon,
-                                    contentDescription = item.title
+                                    contentDescription = item.title,
+                                    modifier = Modifier.size(36.dp)
                                 )
-                            }
+                            },
+                            colors = NavigationBarItemColors(
+                                selectedIconColor = MaterialTheme.colorScheme.primary,
+                                selectedTextColor = MaterialTheme.colorScheme.primary,
+                                unselectedIconColor = Color(0xFFD9D9D9),
+                                unselectedTextColor = Color(0xFFD9D9D9),
+                                disabledIconColor = Color(0xFFD9D9D9),
+                                disabledTextColor = Color(0xFFD9D9D9),
+                                selectedIndicatorColor = Color.Transparent,
+                            )
                         )
                     }
                 }

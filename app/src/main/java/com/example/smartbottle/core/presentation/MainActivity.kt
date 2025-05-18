@@ -18,6 +18,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -33,7 +34,10 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            SmartBottleTheme {
+            SmartBottleTheme(
+                dynamicColor = false,
+                darkTheme = false,
+            ) {
 
                 val viewModel = viewModel<MainViewModel>()
                 val dialogQueue = viewModel.visiblePermissionDialogQueue
@@ -67,7 +71,8 @@ class MainActivity : ComponentActivity() {
                 }
 
                 Surface(
-                    modifier = Modifier.fillMaxSize()
+                    modifier = Modifier.fillMaxSize(),
+                    color = Color.White,
                 ) {
 
                     Navigation(

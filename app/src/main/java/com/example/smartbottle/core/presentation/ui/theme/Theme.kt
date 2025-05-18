@@ -1,25 +1,35 @@
 package com.example.smartbottle.core.presentation.ui.theme
 
 import android.os.Build
+import androidx.compose.foundation.background
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 
 private val DarkColorScheme = darkColorScheme(
-    primary = Purple80,
-    secondary = PurpleGrey80,
-    tertiary = Pink80
-)
+    primary = Blue,
+    secondary = LightBlue,
+    tertiary = veryLightBlue,
+    background = Color.White,
+    surface = Color.White,
+
+    )
 
 private val LightColorScheme = lightColorScheme(
-    primary = Purple40,
-    secondary = PurpleGrey40,
-    tertiary = Pink40
+    primary = Blue,
+    secondary = LightBlue,
+    tertiary = veryLightBlue,
+    background = Color.White,
+    surface = Color.White,
 
     /* Other default colors to override
     background = Color(0xFFFFFBFE),
@@ -52,6 +62,14 @@ fun SmartBottleTheme(
     MaterialTheme(
         colorScheme = colorScheme,
         typography = Typography,
-        content = content
-    )
+    ){
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.background)
+        ) {
+            content()
+        }
+
+    }
 }
