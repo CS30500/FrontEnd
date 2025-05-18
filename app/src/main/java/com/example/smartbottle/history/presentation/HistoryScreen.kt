@@ -2,6 +2,7 @@ package com.example.smartbottle.history.presentation
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -68,7 +69,7 @@ private fun HistoryScreenCore(
     Column(
         modifier = Modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
+        verticalArrangement = Arrangement.Top
     ) {
         val firstItem = state.historyList.firstOrNull()
 
@@ -84,7 +85,7 @@ private fun HistoryScreenCore(
                     withStyle(style = MaterialTheme.typography.displayLarge.toSpanStyle().copy(
                         color = MaterialTheme.colorScheme.primary
                     )) {
-                        append(" 16 Day\n")
+                        append(" ${state.streakCount} Day\n")
                     }
                     withStyle(style = MaterialTheme.typography.titleLarge.toSpanStyle()) {
                         append(" hydration Streak")
@@ -101,8 +102,10 @@ private fun HistoryScreenCore(
             )
         }
 
-        val sampleDays = (1..31).map { it to (0.1f * (it % 10)) }
-        CalendarWithProgress(selectedDay = 24)
+        CalendarWithProgress(
+            onAction = onAction,
+            state = state
+        )
 
         Column(
             modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp, bottom = 0.dp).fillMaxWidth(),
@@ -113,29 +116,22 @@ private fun HistoryScreenCore(
                 , style = MaterialTheme.typography.titleMedium)
         }
 
-        MonthlyStatisticsCard()
-
-        if (firstItem == null) {
-            Text("데이터가 없습니다.")
-        } else {
-            // 정상적으로 가져온 firstItem에 대한 UI 처리
-            Text("시간: ${firstItem.date}")
-        }
+        MonthlyStatisticsCard(percentList = state.monthStatistics)
     }
 }
 @Composable
 fun CalendarWithProgress(
     modifier: Modifier = Modifier,
-    selectedDay: Int? = null
+    onAction: (HistoryAction) -> Unit,
+    state: HistoryState
 ) {
-    var currentMonth by remember { mutableStateOf(YearMonth.now()) }
 
-    val firstDayOfWeek = currentMonth.atDay(1).dayOfWeek.value % 7 // Sunday=0
-    val daysInMonth = currentMonth.lengthOfMonth()
-    val days = (1..daysInMonth).map { it to (0.1f * (it % 10)) }
+    val firstDayOfWeek = state.selectedMonth.atDay(1).dayOfWeek.value % 7 // Sunday=0
+    val daysInMonth = state.selectedMonth.lengthOfMonth()
+    val days = state.monthPercents
 
-    val monthName = currentMonth.month.getDisplayName(TextStyle.FULL, Locale.ENGLISH).uppercase()
-    val year = currentMonth.year
+    val monthName = state.selectedMonth.month.getDisplayName(TextStyle.FULL, Locale.ENGLISH).uppercase()
+    val year = state.selectedMonth.year
 
     val daysOfWeek = listOf("SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT")
 
@@ -148,7 +144,7 @@ fun CalendarWithProgress(
             verticalAlignment = Alignment.CenterVertically
         ) {
             IconButton(onClick = {
-                currentMonth = currentMonth.minusMonths(1)
+                onAction(HistoryAction.ChangeMonth(state.selectedMonth.minusMonths(1)))
             }) {
                 Icon(Icons.Default.ChevronLeft, contentDescription = "Previous Month")
             }
@@ -156,7 +152,7 @@ fun CalendarWithProgress(
             Text("$monthName $year", style = MaterialTheme.typography.titleMedium)
 
             IconButton(onClick = {
-                currentMonth = currentMonth.plusMonths(1)
+                onAction(HistoryAction.ChangeMonth(state.selectedMonth.plusMonths(1)))
             }) {
                 Icon(Icons.Default.ChevronRight, contentDescription = "Next Month")
             }
@@ -185,7 +181,7 @@ fun CalendarWithProgress(
                     Box(modifier = Modifier.size(40.dp))
                 } else {
                     val day = days[index - firstDayOfWeek]
-                    DayWithProgress(day.first, day.second, isSelected = selectedDay == day.first)
+                    DayWithProgress(day.first, day.second, isSelected = state.selectedDay == day.first, onAction)
                 }
             }
         }
@@ -193,11 +189,14 @@ fun CalendarWithProgress(
 }
 
 @Composable
-fun DayWithProgress(day: Int, progress: Float, isSelected: Boolean) {
+fun DayWithProgress(day: Int, progress: Float, isSelected: Boolean, onAction: (HistoryAction) -> Unit) {
     Box(
         modifier = Modifier
-            .size(40.dp),
-        contentAlignment = Alignment.Center
+            .size(40.dp)
+            .clickable {
+                onAction(HistoryAction.ChangeDay(day))
+            },
+        contentAlignment = Alignment.Center,
     ) {
         Canvas(modifier = Modifier.size(36.dp)) {
             val stroke = Stroke(width = 4.dp.toPx(), cap = StrokeCap.Round)
@@ -215,16 +214,30 @@ fun DayWithProgress(day: Int, progress: Float, isSelected: Boolean) {
             )
         }
 
-        Text(
-            text = day.toString(),
-            style = MaterialTheme.typography.bodySmall.copy(
-                color = if (isSelected) Color.White else Color.Black,
-                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
-            ),
-            modifier = if (isSelected) Modifier
-                .background(Color(0xFF3B82F6), shape = CircleShape)
-                .padding(6.dp) else Modifier
-        )
+        if (isSelected) {
+            Box(
+                modifier = Modifier
+                    .size(28.dp)
+                    .background(Color(0xFF3B82F6), shape = CircleShape),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = day.toString(),
+                    style = MaterialTheme.typography.bodySmall.copy(
+                        color = Color.White,
+                        fontWeight = FontWeight.Bold
+                    )
+                )
+            }
+        } else {
+            Text(
+                text = day.toString(),
+                style = MaterialTheme.typography.bodySmall.copy(
+                    color = Color.Black,
+                    fontWeight = FontWeight.Normal
+                )
+            )
+        }
     }
 }
 
@@ -257,9 +270,10 @@ fun MonthlyStatisticsCard(percentList: List<Float> = listOf(0.1f, 0.2f, 0.3f, 0.
                 .background(Color(0xFFE5E7EB))
         ) {
             colors.forEachIndexed() { index, color ->
+                val validWeight = if (percentList[index] <= 0f) 0.0001f else percentList[index]
                 Box(
                     modifier = Modifier
-                        .weight(percentList[index])
+                        .weight(validWeight)
                         .fillMaxHeight()
                         .background(colors[index])
                 )
