@@ -53,11 +53,13 @@ fun HistoryScreen(
     viewmodel : HistoryViewModel = koinViewModel(),
     onNavigation : () -> Unit
 ){
-    HistoryScreenCore(
-        state = viewmodel.state,
-        onAction = viewmodel::onAction,
-        onNavigation
-    )
+
+        HistoryScreenCore(
+            state = viewmodel.state,
+            onAction = viewmodel::onAction,
+            onNavigation
+        )
+
 }
 
 @Composable
@@ -102,10 +104,17 @@ private fun HistoryScreenCore(
             )
         }
 
-        CalendarWithProgress(
-            onAction = onAction,
-            state = state
-        )
+        if (state.isLoading){
+            Text("Loading")
+        } else if (state.isError){
+            Text("Error")
+        } else {
+
+            CalendarWithProgress(
+                onAction = onAction,
+                state = state
+            )
+        }
 
         Column(
             modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp, bottom = 0.dp).fillMaxWidth(),
@@ -115,9 +124,16 @@ private fun HistoryScreenCore(
                 "Monthly Statistics"
                 , style = MaterialTheme.typography.titleMedium)
         }
+        if (state.isLoading){
+            Text("Loading")
+        } else if (state.isError){
+            Text("Error")
+        } else {
 
-        MonthlyStatisticsCard(percentList = state.monthStatistics)
+            MonthlyStatisticsCard(percentList = state.monthStatistics)
+        }
     }
+
 }
 @Composable
 fun CalendarWithProgress(

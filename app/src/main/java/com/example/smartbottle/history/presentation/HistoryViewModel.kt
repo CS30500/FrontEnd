@@ -9,7 +9,10 @@ import com.example.smartbottle.history.domain.HistoryItem
 import com.example.smartbottle.history.domain.HistoryList
 import com.example.smartbottle.history.domain.HistoryRepository
 import com.example.smartbottle.history.domain.HistoryResult
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import java.io.IOException
 import java.time.LocalDate
 import java.time.YearMonth
 
@@ -20,140 +23,105 @@ class HistoryViewModel(
     var state by mutableStateOf(HistoryState())
         private set
 
-    init{
-        loadHistory()
-        getMonthData(state.selectedMonth, state.historyList)
-    }
+    init { loadHistory(state.selectedMonth) }
 
-    fun onAction(action: HistoryAction) {
+    fun onAction(action: HistoryAction) =
         when (action) {
-            is HistoryAction.ChangeMonth -> {
-                state = state.copy(selectedMonth = action.newMonth)
-                getMonthData(state.selectedMonth, state.historyList)
-            }
-            is HistoryAction.ChangeDay -> {
-                state = state.copy(selectedDay = action.newDay)
-            }
-            is HistoryAction.GetMonthData -> {
-                getMonthData(action.month, action.historyList)
-            }
+        is HistoryAction.ChangeMonth -> {
+            state = state.copy(selectedMonth = action.newMonth)
+            loadHistory(action.newMonth)
+        }
+        is HistoryAction.ChangeDay   -> {
+            state = state.copy(selectedDay = action.newDay)
+        }
 
+        is HistoryAction.GetMonthData -> TODO()
+    }
+
+    /** ─────────── 월-별 기록 로드 & 상태 반영 ─────────── **/
+    private fun loadHistory(month: YearMonth) {
+        viewModelScope.launch {
+            state = state.copy(isLoading = true, isError = false)
+
+            try {
+                /** ① UI에 보여줄 달 */
+                val uiList = fetchHistory(month)
+
+                /** ② streak 계산용 달 (어제가 속한 달) */
+                val currentMonth = YearMonth.from(LocalDate.now().minusDays(1))
+                val streakList  =
+                    if (currentMonth == month) uiList else fetchHistory(currentMonth)
+
+                /* 통계 계산 */
+                val (percents, stats) = calculateMonthData(month, uiList)
+
+                state = state.copy(
+                    isLoading       = false,
+                    historyList     = uiList,
+                    monthPercents   = percents,
+                    monthStatistics = stats,
+                    streakCount     = getConsecutiveFullDaysUntilYesterday(streakList)
+                )
+
+            } catch (e: Exception) {    // 네트워크 오류·파싱 오류 등
+                state = state.copy(isLoading = false, isError = true)
+            }
         }
     }
 
+    /** ────────────── 월 데이터 한 번만 받아오기 ────────────── **/
+    private suspend fun fetchHistory(month: YearMonth): List<HistoryItem> =
+        when (val result = historyRepository
+            .getHistory(month.year, month.monthValue)
+            .first()) {
 
-    private fun getMonthData(month: YearMonth, historyList: List<HistoryItem>) {
-        // 1) 해당 월(YearMonth)의 데이터만 필터링
-        val monthItems = historyList.filter {
-            val localDate = LocalDate.parse(it.date)
-            localDate.year == month.year && localDate.month == month.month
+            is HistoryResult.Success -> result.data?.history ?: emptyList()
+            is HistoryResult.Error   -> throw IOException("History load failed")
         }
 
-        // 2) 이번 달 날짜(1~말일) 순회하며 total_intake_ml / target_ml 퍼센트 계산
-        val daysInMonth = 1..month.lengthOfMonth()
+    /** ──────────── 월 통계 계산 (state 미참조) ──────────── **/
+    private fun calculateMonthData(
+        month: YearMonth,
+        historyList: List<HistoryItem>
+    ): Pair<List<Pair<Int, Float>>, List<Float>> {
 
-        val dayProgressList = daysInMonth.map { day ->
-            // 단일 날짜 데이터 찾아서 totalIntake/targetIntake 퍼센트 계산
-            val historyItem = monthItems.find {
-                val localDate = LocalDate.parse(it.date)
-                localDate.dayOfMonth == day
-            }
+        val monthItems = historyList.filter {
+            val d = LocalDate.parse(it.date)
+            d.year == month.year && d.month == month.month
+        }
 
-            val totalIntake = historyItem?.total_intake_ml ?: 0.0
-            val targetIntake = historyItem?.target_ml ?: 0.0
-            val ratio = if (targetIntake > 0.0) {
-                (totalIntake / targetIntake).toFloat()
-            } else {
-                0f
-            }
-
-            // day와 ratio를 Pair로 묶어 반환
+        val progress = (1..month.lengthOfMonth()).map { day ->
+            val item   = monthItems.find { LocalDate.parse(it.date).dayOfMonth == day }
+            val total  = item?.total_intake_ml ?: 0.0
+            val target = item?.target_ml ?: 0.0
+            val ratio  = if (target > 0.0) (total / target).toFloat() else 0f
             day to ratio
         }
 
-        // 전체 날짜 수
-        val totalDays = dayProgressList.size.takeIf { it > 0 } ?: 1
-
-        // 3) 비율별 개수를 구한 뒤, 전체 대비 비율(0~1)을 계산
-        val count100 = dayProgressList.count { (_, ratio) -> ratio >= 1f }
-        val count80to100 = dayProgressList.count { (_, ratio) -> ratio >= 0.8f && ratio < 1f }
-        val count60to80 = dayProgressList.count { (_, ratio) -> ratio >= 0.6f && ratio < 0.8f }
-        val countUnder60 = dayProgressList.count { (_, ratio) -> ratio < 0.6f }
-
-        val ratio100 = count100.toFloat() / totalDays
-        val ratio80to100 = count80to100.toFloat() / totalDays
-        val ratio60to80 = count60to80.toFloat() / totalDays
-        val ratioUnder60 = countUnder60.toFloat() / totalDays
-
-        // 4) 상태에 반영
-        state = state.copy(
-            monthPercents = dayProgressList,  // (day, ratio) 리스트
-            monthStatistics = listOf(
-                ratio100,
-                ratio80to100,
-                ratio60to80,
-                ratioUnder60
-            )
+        val days = progress.size.takeIf { it > 0 } ?: 1
+        val stats = listOf(
+            progress.count { it.second >= 1f }         .toFloat() / days,
+            progress.count { it.second in 0.8f..<1f }  .toFloat() / days,
+            progress.count { it.second in 0.6f..<0.8f }.toFloat() / days,
+            progress.count { it.second < 0.6f }        .toFloat() / days
         )
-
-    }
-
-
-
-    private fun loadHistory(){
-        viewModelScope.launch {
-            state = state.copy(
-                isLoading = true
-            )
-
-            historyRepository.getHistory().collect{ result ->
-                when(result){
-                    is HistoryResult.Error -> {
-                        state = state.copy(
-                            isError = true
-                        )
-
-                    }
-                    is HistoryResult.Success -> {
-                        state = state.copy(
-                            isError = false,
-                            historyList = result.data?.history ?: emptyList(),
-                            streakCount = getConsecutiveFullDaysUntilYesterday(result.data?.history ?: emptyList())
-                            )
-                    }
-                }
-            }
-
-            getMonthData(state.selectedMonth, state.historyList)
-
-            state = state.copy(
-                isLoading = false
-            )
-        }
+        return progress to stats
     }
 }
 
-private fun getConsecutiveFullDaysUntilYesterday(historyList: List<HistoryItem>): Int {
-    val sortedList = historyList.sortedByDescending { LocalDate.parse(it.date) }
-    val yesterday = LocalDate.now().minusDays(1)
-    var consecutiveCount = 0
-    var currentDay = yesterday
+/** ─────────── streak 계산 (어제부터 연속 달성) ─────────── **/
+private fun getConsecutiveFullDaysUntilYesterday(list: List<HistoryItem>): Int {
+    val sorted  = list.sortedByDescending { LocalDate.parse(it.date) }
+    var current = LocalDate.now().minusDays(1)
+    var streak  = 0
 
-    // 어제부터 시작해 하루씩 되돌아가며 검사
     while (true) {
-        val dayRecord = sortedList.firstOrNull {
-            val recordDate = LocalDate.parse(it.date)
-            recordDate == currentDay
-        } ?: break
-
-        // 목표가 0보다 클 때, 100% 달성 여부 판단
-        if (dayRecord.target_ml!! > 0 && (dayRecord.total_intake_ml?.div(dayRecord.target_ml))!! >= 1.0) {
-            consecutiveCount++
-            currentDay = currentDay.minusDays(1)
-        } else {
-            break
-        }
+        val rec = sorted.firstOrNull { LocalDate.parse(it.date) == current } ?: break
+        val tgt = rec.target_ml ?: 0.0
+        val ttl = rec.total_intake_ml ?: 0.0
+        if (tgt > 0.0 && ttl / tgt >= 1.0) {
+            streak++; current = current.minusDays(1)
+        } else break
     }
-
-    return consecutiveCount
+    return streak
 }

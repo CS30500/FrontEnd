@@ -11,6 +11,7 @@ import io.ktor.client.call.body
 import io.ktor.client.plugins.ClientRequestException
 import io.ktor.client.plugins.RedirectResponseException
 import io.ktor.client.plugins.ServerResponseException
+import io.ktor.client.request.get
 import io.ktor.client.request.header
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
@@ -112,7 +113,7 @@ class AuthRepositoryImpl(
             val token = prefs.getString("jwt", null) ?: return AuthResult.Unauthorized()
 
             // 서버에 토큰을 포함해 인증 요청
-            val response = httpClient.post("$baseUrl/auth/authenticate") {
+            val response = httpClient.get("$baseUrl/auth/verify") {
                 header("Authorization", "Bearer $token")
             }
 

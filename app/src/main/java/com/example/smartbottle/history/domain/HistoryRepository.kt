@@ -4,6 +4,6 @@ import kotlinx.coroutines.flow.Flow
 
 interface HistoryRepository {
 
-    suspend fun getHistory(): Flow<HistoryResult<HistoryList>>
+    suspend fun getHistory(year : Int, month : Int): Flow<HistoryResult<HistoryList>>
 
 }

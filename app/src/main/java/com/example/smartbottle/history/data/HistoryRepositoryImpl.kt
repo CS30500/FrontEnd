@@ -12,6 +12,7 @@ import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.request.get
 import io.ktor.client.request.header
+import io.ktor.client.request.parameter
 import io.ktor.client.statement.bodyAsText
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
@@ -27,8 +28,8 @@ class HistoryRepositoryImpl(
 
     private val baseUrl = NetworkConstants.BASE_URL
 
-    private suspend fun getLocalHistory(): HistoryList{
-        val localHistory = dao.getHistoryList()
+    private suspend fun getLocalHistory(year: Int, month: Int): HistoryList{
+        val localHistory = dao.getHistoryByYearMonth(year.toString(), month.toString())
         println(tag + "getLocalHistory: $localHistory")
 
         val historyList = HistoryList(
@@ -38,13 +39,15 @@ class HistoryRepositoryImpl(
         return historyList
     }
 
-    private suspend fun getRemoteHistory(): HistoryList {
+    private suspend fun getRemoteHistory(year : Int, month : Int): HistoryList {
         // 로그인 시 저장된 JWT 토큰을 가져옴
         val token = prefs.getString("jwt", null) ?: throw IllegalStateException("토큰이 없습니다.")
 
         // 1) 서버 요청 후, HttpResponse를 통째로 받아 세부 정보 확인
         val httpResponse = httpClient.get("$baseUrl/hydration/monthly") {
             header("Authorization", "Bearer $token")
+            parameter("year", year)
+            parameter("month", month)
         }
 
         // 2) 상태 코드, 헤더 로그로 확인 (서버 상태가 200인지, 권한 에러가 아닌지 점검)
@@ -66,10 +69,10 @@ class HistoryRepositoryImpl(
     }
 
 
-    override suspend fun getHistory(): Flow<HistoryResult<HistoryList>> {
+    override suspend fun getHistory(year : Int, month : Int): Flow<HistoryResult<HistoryList>> {
         return flow{
             val remoteHistoryList = try {
-                getRemoteHistory()
+                getRemoteHistory(year = year, month = month)
             } catch (e: Exception) {
                 e.printStackTrace()
                 if(e is CancellationException) throw e
@@ -80,11 +83,11 @@ class HistoryRepositoryImpl(
             remoteHistoryList?.let {
                 dao.deleteAllHistory()
                 dao.upsertHistoryList(remoteHistoryList.history?.map { it.toHistoryItemEntity() } ?: emptyList())
-                emit(HistoryResult.Success(getLocalHistory()))
+                emit(HistoryResult.Success(getLocalHistory(year, month)))
                 return@flow
             }
 
-            val localHistoryList = getLocalHistory()
+            val localHistoryList = getLocalHistory(year, month)
             if(localHistoryList.history?.isNotEmpty() == true){
                 emit(HistoryResult.Success(localHistoryList))
                 return@flow

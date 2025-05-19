@@ -18,4 +18,7 @@ interface HistoryDao {
     @Query("SELECT * FROM historyitementity WHERE date = :date")
     suspend fun getHistoryItem(date: String): HistoryItemEntity
 
+    @Query("SELECT * FROM historyitementity WHERE substr(date, 1, 4) = :year AND substr(date, 6, 2) = :month ")
+    suspend fun getHistoryByYearMonth(year: String, month: String): List<HistoryItemEntity>
+
 }
