@@ -2,7 +2,8 @@ package com.example.smartbottle.core.domain
 
 interface CoreRepository {
 
-    suspend fun postBleData(temperature: Float, pressure: Int, waterIntake: Float) : CoreResult<Unit>
+    suspend fun postBleTempData(temperature: Float) : CoreResult<Unit>
+    suspend fun postBleDistanceData(distance: Float) : CoreResult<Unit>
     fun bleConnect()
     fun bleDisconnect()
 }

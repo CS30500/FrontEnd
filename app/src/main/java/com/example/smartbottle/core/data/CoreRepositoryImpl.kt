@@ -28,13 +28,18 @@ import io.ktor.client.plugins.ClientRequestException
 import io.ktor.client.plugins.RedirectResponseException
 import io.ktor.client.plugins.ServerResponseException
 import io.ktor.client.request.header
+import io.ktor.client.request.parameter
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.HttpResponse
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
+import io.ktor.http.ParametersBuilder
 import io.ktor.http.contentType
 import io.ktor.http.isSuccess
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import java.util.UUID
 
 
@@ -55,24 +60,20 @@ class CoreRepositoryImpl(
     private var notifyCallback: ((String) -> Unit)? = null
 
 
-    override suspend fun postBleData (
+    override suspend fun postBleTempData (
         temperature: Float,
-        pressure: Int,
-        waterIntake: Float
     ) : CoreResult<Unit> {
         return try {
                 // 예: /bottle/data (서버에 실제로 해당 엔드포인트가 존재해야 함)
                 val token = prefs.getString("jwt", null) ?: return CoreResult.Error("토큰이 없습니다.")
 
-                val response: HttpResponse = httpClient.post("$baseUrl/bottle/data") {
+                val response: HttpResponse = httpClient.post("$baseUrl/bottle/") {
                     header("Authorization", "Bearer $token")
                     contentType(ContentType.Application.Json)
                     // 만드는 JSON 구조는 서버 요구사항에 따라 맞춤 구성 필요
                     setBody(
                         mapOf(
-                            "temperature" to temperature,
-                            "pressure" to pressure,
-                            "waterIntake" to waterIntake
+                            "temperature_c" to temperature,
                         )
                     )
                 }
@@ -84,6 +85,45 @@ class CoreRepositoryImpl(
                 }
 
             }  catch (e: ClientRequestException) {
+            // 4xx 요청 오류
+            when (e.response.status) {
+                HttpStatusCode.Unauthorized -> CoreResult.Error("error")
+                else -> CoreResult.Error("error")
+            }
+        } catch (e: ServerResponseException) {
+            // 5xx 서버 오류
+            CoreResult.Error("error")
+        } catch (e: RedirectResponseException) {
+            // 3xx 리다이렉트 오류
+            CoreResult.Error("error")
+        } catch (e: Exception) {
+            // 기타 예외
+            CoreResult.Error("error")
+        }
+
+    }
+
+    override suspend fun postBleDistanceData (
+        distance: Float,
+    ) : CoreResult<Unit> {
+        return try {
+            // 예: /bottle/data (서버에 실제로 해당 엔드포인트가 존재해야 함)
+            val token = prefs.getString("jwt", null) ?: return CoreResult.Error("토큰이 없습니다.")
+
+            val response: HttpResponse = httpClient.post("$baseUrl/hydration/log") {
+                header("Authorization", "Bearer $token")
+                contentType(ContentType.Application.Json)
+                // 만드는 JSON 구조는 서버 요구사항에 따라 맞춤 구성 필요
+                parameter("amount", distance)
+            }
+
+            if (response.status.isSuccess()) {
+                CoreResult.Success(Unit)
+            } else {
+                CoreResult.Error("error")
+            }
+
+        }  catch (e: ClientRequestException) {
             // 4xx 요청 오류
             when (e.response.status) {
                 HttpStatusCode.Unauthorized -> CoreResult.Error("error")
@@ -138,6 +178,43 @@ class CoreRepositoryImpl(
         Handler(Looper.getMainLooper()).postDelayed({
             stopScan()
         }, BleConstants.SCAN_TIMEOUT)
+
+        // 여기에서 콜백 등록
+        setNotifyCallback { fullData ->
+            Log.d(tag, "🛰️ 수신된 BLE 데이터: $fullData")
+            val lines = fullData.split("\n")
+
+            for (data in lines) {
+
+                val trimmed = data.trim()
+                if (trimmed.isBlank()) continue
+
+                when {
+                    trimmed.startsWith("TEMP:") -> {
+                        val temp =
+                            data.removePrefix("TEMP:").toFloatOrNull() ?: return@setNotifyCallback
+                        CoroutineScope(Dispatchers.IO).launch {
+                            val result = postBleTempData(temp)
+                            Log.d(tag, "TEMP 전송 결과: $result")
+                        }
+                    }
+
+                    trimmed.startsWith("DIST:") -> {
+                        val water =
+                            data.removePrefix("DIST:").toFloatOrNull() ?: return@setNotifyCallback
+                        CoroutineScope(Dispatchers.IO).launch {
+                            val result = postBleDistanceData(water)
+                            Log.d(tag, " WATER 전송 결과: $result")
+                        }
+                    }
+
+                    else -> {
+                        Log.w(tag, "알 수 없는 데이터 형식: $data")
+                    }
+                }
+
+            }
+        }
     }
 
     @RequiresPermission(Manifest.permission.BLUETOOTH_SCAN)
@@ -149,6 +226,7 @@ class CoreRepositoryImpl(
     private val gattCallback = object : BluetoothGattCallback() {
         @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
         override fun onConnectionStateChange(gatt: BluetoothGatt?, status: Int, newState: Int) {
+            Log.w(tag, "stateChange → status=$status, newState=$newState")
             super.onConnectionStateChange(gatt, status, newState)
             if (newState == BluetoothProfile.STATE_CONNECTED) {
                 Log.d(tag, "Connected to GATT server")
@@ -197,6 +275,8 @@ class CoreRepositoryImpl(
         ) {
             val data = value.toString(Charsets.UTF_8)
             notifyCallback?.invoke(data)
+
+
             Log.d(tag, "Received BLE data (API33+): $data")
         }
 
