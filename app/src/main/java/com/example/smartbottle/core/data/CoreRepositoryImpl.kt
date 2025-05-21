@@ -138,6 +138,38 @@ class CoreRepositoryImpl(
         Handler(Looper.getMainLooper()).postDelayed({
             stopScan()
         }, BleConstants.SCAN_TIMEOUT)
+
+        // 여기에서 콜백 등록
+        setNotifyCallback { data ->
+            Log.d(tag, "🛰️ 수신된 BLE 데이터: $data")
+
+            when {
+                data.startsWith("TEMP:") -> {
+                    val temp = data.removePrefix("TEMP:").toFloatOrNull() ?: return@setNotifyCallback
+                    CoroutineScope(Dispatchers.IO).launch {
+                        val result = postBleData(temp, pressure = 0, waterIntake = 0f)
+                        Log.d(tag, "TEMP 전송 결과: $result")
+                    }
+                }
+                data.startsWith("PRESS:") -> {
+                    val press = data.removePrefix("PRESS:").toIntOrNull() ?: return@setNotifyCallback
+                    CoroutineScope(Dispatchers.IO).launch {
+                        val result = postBleData(temperature = 0f, press, waterIntake = 0f)
+                        Log.d(tag, "PRESS 전송 결과: $result")
+                    }
+                }
+                data.startsWith("WATER:") -> {
+                    val water = data.removePrefix("WATER:").toFloatOrNull() ?: return@setNotifyCallback
+                    CoroutineScope(Dispatchers.IO).launch {
+                        val result = postBleData(temperature = 0f, pressure = 0, water)
+                        Log.d(tag, " WATER 전송 결과: $result")
+                    }
+                }
+                else -> {
+                    Log.w(tag, "알 수 없는 데이터 형식: $data")
+                }
+            }
+        }
     }
 
     @RequiresPermission(Manifest.permission.BLUETOOTH_SCAN)
