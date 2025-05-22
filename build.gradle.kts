@@ -5,5 +5,5 @@ plugins {
     alias(libs.plugins.jetbrainsKotlinSerialization) apply false
     alias(libs.plugins.ksp) apply false
     alias(libs.plugins.compose.compiler) apply false
-
+    alias(libs.plugins.fcm) apply false
 }

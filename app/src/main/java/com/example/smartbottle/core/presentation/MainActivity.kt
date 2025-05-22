@@ -7,6 +7,7 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
@@ -27,11 +28,21 @@ import androidx.navigation.compose.rememberNavController
 import com.example.smartbottle.auth.presentation.login.LoginScreen
 import com.example.smartbottle.auth.presentation.signup.RegisterScreen
 import com.example.smartbottle.core.presentation.ui.theme.SmartBottleTheme
+import com.google.firebase.messaging.FirebaseMessaging
 
 class MainActivity : ComponentActivity() {
     @RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        FirebaseMessaging.getInstance().token
+            .addOnCompleteListener { task ->
+                if (task.isSuccessful) {
+                    val token = task.result
+                    Log.d("FCM_TOKEN", token)
+                } else {
+                    Log.e("FCM_TOKEN", "Failed to get token", task.exception)
+                }
+            }
         enableEdgeToEdge()
         setContent {
             SmartBottleTheme(

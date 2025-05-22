@@ -83,7 +83,6 @@ private fun ProfileScreenCore(
                 PersonalInfoCard(profile)
             }
 
-            BottomNavigationBar()
         }
     }
 }
@@ -227,45 +226,6 @@ fun PersonalInfoCard(profile: Profile?) {
         )
     }
 }
-
-@Composable
-fun BottomNavigationBar() {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(Color.White)
-            .padding(top = 18.dp)
-    ) {
-        Row(horizontalArrangement = Arrangement.SpaceEvenly, modifier = Modifier.fillMaxWidth()) {
-            BottomNavItem("History")
-            BottomNavItem("Home")
-            BottomNavItem("Profile", active = true)
-        }
-        Box(
-            modifier = Modifier
-                .align(Alignment.CenterHorizontally)
-                .clip(RoundedCornerShape(12.dp))
-                .width(108.dp)
-                .height(4.dp)
-                .background(Color(0xFF171D1B))
-        )
-    }
-}
-
-@Composable
-fun BottomNavItem(label: String, active: Boolean = false) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Box(
-            modifier = Modifier
-                .size(width = 24.dp, height = 24.dp)
-                .border(if (active) 2.dp else 0.dp, Color(0xFF939393), RoundedCornerShape(4.dp))
-        ) {}
-        Text(label, fontSize = 12.sp, fontWeight = FontWeight.Bold, color = if (active) Color(0xFF457EDF) else Color(0xFF939393))
-    }
-}
-
-
-
 
 @Preview(showBackground = true)
 @Composable
