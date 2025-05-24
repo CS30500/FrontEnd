@@ -1,6 +1,7 @@
 package com.example.smartbottle.history.data
 
 import android.content.SharedPreferences
+import android.util.Log
 import com.example.smartbottle.core.data.NetworkConstants
 import com.example.smartbottle.history.data.local.HistoryDao
 import com.example.smartbottle.history.data.remote.HistoryItemDto
@@ -28,9 +29,18 @@ class HistoryRepositoryImpl(
 
     private val baseUrl = NetworkConstants.BASE_URL
 
+    private fun formatMonth(month: Int): String {
+        return month.toString().padStart(2, '0')
+    }
+
+
     private suspend fun getLocalHistory(year: Int, month: Int): HistoryList{
-        val localHistory = dao.getHistoryByYearMonth(year.toString(), month.toString())
-        println(tag + "getLocalHistory: $localHistory")
+
+        val formattedMonth = formatMonth(month)
+        Log.d(tag ,"getLocalHistory: $year-$formattedMonth")
+
+        val localHistory = dao.getHistoryByYearMonth(year.toString(), formattedMonth)
+        Log.d(tag ,"getLocalHistory: $localHistory")
 
         val historyList = HistoryList(
             history = localHistory.map { it.toHistoryItem() }

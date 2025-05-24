@@ -1,5 +1,6 @@
 package com.example.smartbottle.history.presentation
 
+import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -20,10 +21,14 @@ class HistoryViewModel(
     private val historyRepository: HistoryRepository
 ) : ViewModel() {
 
+    private val tag = "HistoryViewModel: "
+
     var state by mutableStateOf(HistoryState())
         private set
 
-    init { loadHistory(state.selectedMonth) }
+    init {
+        loadHistory(state.selectedMonth)
+    }
 
     fun onAction(action: HistoryAction) =
         when (action) {
@@ -46,6 +51,8 @@ class HistoryViewModel(
             try {
                 /** ① UI에 보여줄 달 */
                 val uiList = fetchHistory(month)
+
+                Log.d(tag, "loadHistory: $uiList")
 
                 /** ② streak 계산용 달 (어제가 속한 달) */
                 val currentMonth = YearMonth.from(LocalDate.now().minusDays(1))

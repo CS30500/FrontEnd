@@ -8,5 +8,8 @@ data class Profile(
     val height: Double? = null,
     val sex: String? = null,
     val user_id: String? = null,
-    val weight: Double? = null
+    val weight: Double? = null,
+    val totalDays: Int? = null,
+    val longestStreak: Int? = null,
+    val hydration: Int? = null
 )

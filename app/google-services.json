@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "865652847254",
+    "project_id": "smartbottle-c732c",
+    "storage_bucket": "smartbottle-c732c.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:865652847254:android:084c4b67360dba3d2a88b7",
+        "android_client_info": {
+          "package_name": "com.example.smartbottle"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBnCWgQKyvMktjuGNPZr2im5zE-WEytV30"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
