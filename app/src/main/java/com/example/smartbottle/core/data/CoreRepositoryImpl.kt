@@ -60,38 +60,31 @@ class CoreRepositoryImpl(
     private var notifyCallback: ((String) -> Unit)? = null
 
 
-    override suspend fun postBleData (
     override suspend fun postBleTempData (
         temperature: Float,
-        pressure: Int,
-        waterIntake: Float
     ) : CoreResult<Unit> {
         return try {
-                // 예: /bottle/data (서버에 실제로 해당 엔드포인트가 존재해야 함)
-                val token = prefs.getString("jwt", null) ?: return CoreResult.Error("토큰이 없습니다.")
+            // 예: /bottle/data (서버에 실제로 해당 엔드포인트가 존재해야 함)
+            val token = prefs.getString("jwt", null) ?: return CoreResult.Error("토큰이 없습니다.")
 
-                val response: HttpResponse = httpClient.post("$baseUrl/bottle/data") {
-                val response: HttpResponse = httpClient.post("$baseUrl/bottle/") {
-                    header("Authorization", "Bearer $token")
-                    contentType(ContentType.Application.Json)
-                    // 만드는 JSON 구조는 서버 요구사항에 따라 맞춤 구성 필요
-                    setBody(
-                        mapOf(
-                            "temperature" to temperature,
-                            "pressure" to pressure,
-                            "waterIntake" to waterIntake
-                            "temperature_c" to temperature,
-                        )
+            val response: HttpResponse = httpClient.post("$baseUrl/bottle/") {
+                header("Authorization", "Bearer $token")
+                contentType(ContentType.Application.Json)
+                // 만드는 JSON 구조는 서버 요구사항에 따라 맞춤 구성 필요
+                setBody(
+                    mapOf(
+                        "temperature_c" to temperature,
                     )
-                }
+                )
+            }
 
-                if (response.status.isSuccess()) {
-                    CoreResult.Success(Unit)
-                } else {
-                    CoreResult.Error("error")
-                }
+            if (response.status.isSuccess()) {
+                CoreResult.Success(Unit)
+            } else {
+                CoreResult.Error("error")
+            }
 
-            }  catch (e: ClientRequestException) {
+        }  catch (e: ClientRequestException) {
             // 4xx 요청 오류
             when (e.response.status) {
                 HttpStatusCode.Unauthorized -> CoreResult.Error("error")
@@ -187,36 +180,6 @@ class CoreRepositoryImpl(
         }, BleConstants.SCAN_TIMEOUT)
 
         // 여기에서 콜백 등록
-<<<<<<< HEAD
-        setNotifyCallback { data ->
-            Log.d(tag, "🛰️ 수신된 BLE 데이터: $data")
-
-            when {
-                data.startsWith("TEMP:") -> {
-                    val temp = data.removePrefix("TEMP:").toFloatOrNull() ?: return@setNotifyCallback
-                    CoroutineScope(Dispatchers.IO).launch {
-                        val result = postBleData(temp, pressure = 0, waterIntake = 0f)
-                        Log.d(tag, "TEMP 전송 결과: $result")
-                    }
-                }
-                data.startsWith("PRESS:") -> {
-                    val press = data.removePrefix("PRESS:").toIntOrNull() ?: return@setNotifyCallback
-                    CoroutineScope(Dispatchers.IO).launch {
-                        val result = postBleData(temperature = 0f, press, waterIntake = 0f)
-                        Log.d(tag, "PRESS 전송 결과: $result")
-                    }
-                }
-                data.startsWith("WATER:") -> {
-                    val water = data.removePrefix("WATER:").toFloatOrNull() ?: return@setNotifyCallback
-                    CoroutineScope(Dispatchers.IO).launch {
-                        val result = postBleData(temperature = 0f, pressure = 0, water)
-                        Log.d(tag, " WATER 전송 결과: $result")
-                    }
-                }
-                else -> {
-                    Log.w(tag, "알 수 없는 데이터 형식: $data")
-                }
-=======
         setNotifyCallback { fullData ->
             Log.d(tag, "🛰️ 수신된 BLE 데이터: $fullData")
             val lines = fullData.split("\n")
@@ -250,7 +213,6 @@ class CoreRepositoryImpl(
                     }
                 }
 
->>>>>>> 886b0292a99f0aaf3f78d62884e2c23d0ed8225c
             }
         }
     }
