@@ -39,7 +39,18 @@ import io.ktor.http.contentType
 import io.ktor.http.isSuccess
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob       // SupervisorJob
+import kotlinx.coroutines.isActive           // 반복문 안에서 isActive 체크용
+import kotlinx.coroutines.delay              // polling 에서 사용
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.cancel             // Scope.cancel()
+
+import io.ktor.client.request.get            // httpClient.get()
+import io.ktor.client.statement.bodyAsText   // resp.bodyAsText()
+
+import com.example.smartbottle.core.data.BleConstants
+import android.content.pm.PackageManager
+import androidx.core.content.ContextCompat
 import java.util.UUID
 
 
@@ -58,6 +69,7 @@ class CoreRepositoryImpl(
     private val bluetoothAdapter: BluetoothAdapter? = bluetoothManager.adapter
     private var bluetoothGatt: BluetoothGatt? = null
     private var notifyCallback: ((String) -> Unit)? = null
+    private val alertScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
 
 
     override suspend fun postBleTempData (
@@ -158,26 +170,56 @@ class CoreRepositoryImpl(
 
     @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
     private fun connectToDevice(device: BluetoothDevice) {
-        bluetoothGatt = device.connectGatt(context, false, gattCallback)
-        Log.d(tag, "Connecting to ${device.address}")
+        // 권한 체크
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            val granted = ContextCompat.checkSelfPermission(
+                context, Manifest.permission.BLUETOOTH_CONNECT
+            ) == PackageManager.PERMISSION_GRANTED
+            if (!granted) {
+                Log.e(tag, "BLUETOOTH_CONNECT 권한이 없습니다.")
+                return
+            }
+        }
+
+        // 안전하게 GATT 연결
+        try {
+            bluetoothGatt = device.connectGatt(context, false, gattCallback)
+            Log.d(tag, "Connecting to ${device.address}")
+        } catch (e: SecurityException) {
+            Log.e(tag, "Gatt 연결 중 보안 예외", e)
+        }
     }
 
 
     @RequiresPermission(Manifest.permission.BLUETOOTH_SCAN)
     override fun bleConnect() {
-        val scanner = bluetoothAdapter?.bluetoothLeScanner
-        val scanFilter = ScanFilter.Builder().build()
-        val settings = ScanSettings.Builder()
-            .setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY)
-            .build()
+        // 1) 권한 체크
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            val granted = ContextCompat.checkSelfPermission(
+                context, Manifest.permission.BLUETOOTH_SCAN
+            ) == PackageManager.PERMISSION_GRANTED
+            if (!granted) {
+                Log.e(tag, "BLUETOOTH_SCAN 권한이 없습니다.")
+                return
+            }
+        }
 
-        scanner?.startScan(listOf(scanFilter), settings, scanCallback)
-        Log.d(tag, "Started BLE scan")
+        // 2) 안전하게 스캔 시작
+        try {
+            val scanner = bluetoothAdapter?.bluetoothLeScanner
+            scanner?.startScan(
+                listOf(ScanFilter.Builder().build()),
+                ScanSettings.Builder().setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY).build(),
+                scanCallback
+            )
+            Log.d(tag, "Started BLE scan")
+        } catch (e: SecurityException) {
+            Log.e(tag, "BLE 스캔 중 보안 예외", e)
+        }
 
-        // 자동 종료 타이머 (10초 후 종료)
-        Handler(Looper.getMainLooper()).postDelayed({
-            stopScan()
-        }, BleConstants.SCAN_TIMEOUT)
+        // 자동 종료 타이머…
+        Handler(Looper.getMainLooper()).postDelayed({ stopScan() }, BleConstants.SCAN_TIMEOUT)
+
 
         // 여기에서 콜백 등록
         setNotifyCallback { fullData ->
@@ -225,46 +267,33 @@ class CoreRepositoryImpl(
 
     private val gattCallback = object : BluetoothGattCallback() {
         @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
-        override fun onConnectionStateChange(gatt: BluetoothGatt?, status: Int, newState: Int) {
-            Log.w(tag, "stateChange → status=$status, newState=$newState")
-            super.onConnectionStateChange(gatt, status, newState)
-            if (newState == BluetoothProfile.STATE_CONNECTED) {
-                Log.d(tag, "Connected to GATT server")
-                gatt?.discoverServices()
-            } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
-                Log.d(tag, "Disconnected from GATT server")
-            }
-        }
+        override fun onServicesDiscovered(gatt: BluetoothGatt?, status: Int) {
+            super.onServicesDiscovered(gatt, status)
 
-        @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
-        override fun onServicesDiscovered(gatt: BluetoothGatt, status: Int) {
-            val c = gatt
-                .getService(BleConstants.SERVICE_UUID)
+            // ① 서비스랑 캐릭터리스틱 가져오기
+            val characteristic = gatt
+                ?.getService(BleConstants.SERVICE_UUID)
                 ?.getCharacteristic(BleConstants.CHARACTERISTIC_UUID)
-                ?: run {
-                    Log.e(tag, "Characteristic not found!")
-                    return
-                }
 
-
-            gatt.setCharacteristicNotification(c, true)
-
-            val desc = c.getDescriptor(
-                UUID.fromString("00002902-0000-1000-8000-00805f9b34fb")
-            ) ?: return
-
-            val enable = BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE
-
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                // API 33+
-                gatt.writeDescriptor(desc, enable)
-            } else {
-                @Suppress("DEPRECATION")
-                desc.value = enable
-                @Suppress("DEPRECATION")
-                gatt.writeDescriptor(desc)
+            if (characteristic == null) {
+                Log.e(tag, "Characteristic not found!")
+                return
             }
+
+            // ② Notification 셋업
+            gatt.setCharacteristicNotification(characteristic, true)
+            val descriptor = characteristic.getDescriptor(
+                UUID.fromString("00002902-0000-1000-8000-00805f9b34fb")
+            ) ?: run {
+                Log.e(tag, "Descriptor not found!")
+                return
+            }
+            descriptor.value = BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE
+            gatt.writeDescriptor(descriptor)
             Log.d(tag, "Notification set up")
+
+            // ③ Notification 준비 완료 후, 서버 알림 폴링 시작
+            startAlertPolling(15_000L)
         }
 
         @RequiresApi(Build.VERSION_CODES.TIRAMISU)
@@ -300,14 +329,59 @@ class CoreRepositoryImpl(
         this.notifyCallback = callback
     }
 
-    @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
-    override fun bleDisconnect() {
-        bluetoothGatt?.disconnect()
-        bluetoothGatt?.close()
-        bluetoothGatt = null
+    // APP->HW 쓰기
+    fun sendCommandToDevice(command: String) {
+        // 쓰기 권한 체크
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            val granted = ContextCompat.checkSelfPermission(
+                context, Manifest.permission.BLUETOOTH_CONNECT
+            ) == PackageManager.PERMISSION_GRANTED
+            if (!granted) {
+                Log.e(tag, "BLUETOOTH_CONNECT 권한이 없습니다.")
+                return
+            }
+        }
+
+        val service = bluetoothGatt?.getService(BleConstants.SERVICE_UUID) ?: return
+        val char = service.getCharacteristic(BleConstants.CHARACTERISTIC_UUID) ?: return
+
+        try {
+            char.value = command.toByteArray(Charsets.UTF_8)
+            val ok = bluetoothGatt?.writeCharacteristic(char) ?: false
+            Log.d(tag, if (ok) "✅ Sent: $command" else "❌ Send failed")
+        } catch (e: SecurityException) {
+            Log.e(tag, "명령 전송 중 보안 예외", e)
+        }
+    }
+    
+    // 2 서버 알림 확인 + 명령 전송 (폴링 예제)
+    private fun startAlertPolling(intervalMs: Long = 10_000L) {
+        alertScope.launch {
+        while (isActive) {
+            try {
+            val resp = httpClient.get("$baseUrl/alert/status")
+            if (resp.status.isSuccess()) {
+                val body = resp.bodyAsText().trim()
+                if (body == "buzz") {
+                sendCommandToDevice("BUZZ_ON\n")
+                }
+            }
+            } catch (e: Exception) {
+            Log.e(tag, "Alert check failed: ${e.message}")
+            }
+            delay(intervalMs)
+        }
+        }
     }
 
 
 
+    @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
+    override fun bleDisconnect() {
+        alertScope.cancel()   // 폴링 코루틴 취소
+        bluetoothGatt?.disconnect()
+        bluetoothGatt?.close()
+        bluetoothGatt = null
+    }
 
 }
