@@ -34,7 +34,6 @@ import io.ktor.client.request.setBody
 import io.ktor.client.statement.HttpResponse
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
-import io.ktor.http.ParametersBuilder
 import io.ktor.http.contentType
 import io.ktor.http.isSuccess
 import kotlinx.coroutines.CoroutineScope
@@ -307,7 +306,45 @@ class CoreRepositoryImpl(
         bluetoothGatt = null
     }
 
+    override suspend fun postFcmToken(fcmToken: String): CoreResult<Unit> {
+        return try {
+            // 예: /bottle/data (서버에 실제로 해당 엔드포인트가 존재해야 함)
+            val token = prefs.getString("jwt", null) ?: return CoreResult.Error("토큰이 없습니다.")
 
+            val response: HttpResponse = httpClient.post("$baseUrl/fcm/register") {
+                header("Authorization", "Bearer $token")
+                contentType(ContentType.Application.Json)
+                // 만드는 JSON 구조는 서버 요구사항에 따라 맞춤 구성 필요
+                setBody(
+                    mapOf(
+                        "token" to fcmToken,
+                    )
+                )
+            }
+
+            if (response.status.isSuccess()) {
+                CoreResult.Success(Unit)
+            } else {
+                CoreResult.Error("error")
+            }
+
+        }  catch (e: ClientRequestException) {
+            // 4xx 요청 오류
+            when (e.response.status) {
+                HttpStatusCode.Unauthorized -> CoreResult.Error("error")
+                else -> CoreResult.Error("error")
+            }
+        } catch (e: ServerResponseException) {
+            // 5xx 서버 오류
+            CoreResult.Error("error")
+        } catch (e: RedirectResponseException) {
+            // 3xx 리다이렉트 오류
+            CoreResult.Error("error")
+        } catch (e: Exception) {
+            // 기타 예외
+            CoreResult.Error("error")
+        }
+    }
 
 
 }
