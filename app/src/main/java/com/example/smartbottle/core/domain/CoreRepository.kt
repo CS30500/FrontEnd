@@ -6,4 +6,5 @@ interface CoreRepository {
     suspend fun postBleDistanceData(distance: Float) : CoreResult<Unit>
     fun bleConnect()
     fun bleDisconnect()
+    suspend fun  postFcmToken(fcmToken: String): CoreResult<Unit>
 }
