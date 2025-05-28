@@ -6,5 +6,6 @@ import kotlinx.serialization.Serializable
 data class DailyHydration(
     val date: String = "",
     val target_ml: Double = 0.0,
-    val total_intake_ml: Double = 0.0
+    val total_intake_ml: Double = 0.0,
+    val environment: Environment? = null
 )
