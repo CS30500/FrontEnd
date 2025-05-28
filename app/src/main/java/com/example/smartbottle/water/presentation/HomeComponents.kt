@@ -25,47 +25,45 @@ import com.example.smartbottle.RunningService
 
 @Composable
 fun DailyProgress(state: HomeState) {
-    val progress = state.dailyHydration?.let { it.total_intake_ml / it.target_ml }?.toFloat() ?: 0f
+    val intakeMl = state.dailyHydration?.total_intake_ml?.toFloat() ?: 0f
+    val targetMl = (state.dailyHydration?.target_ml?.toFloat() ?: 1f).coerceAtLeast(1f)
+    val progress = (intakeMl / targetMl).coerceIn(0f, 1f)
+
     Box(
         modifier = Modifier
-            .fillMaxWidth()
-            .padding(64.dp),
+            .fillMaxWidth()               // take up available width
+            .aspectRatio(1f)              // force height == width
+            .padding(32.dp),              // optional padding
         contentAlignment = Alignment.Center
     ) {
-        Canvas(modifier = Modifier.size(220.dp)) {
-            val stroke = Stroke(width = 32.dp.toPx(), cap = StrokeCap.Round)
-            val arcSize = Size(size.width, size.height)
-            val topLeft = Offset.Zero
-
+        Canvas(modifier = Modifier.fillMaxSize()) {
+            val stroke = Stroke(width = 40.dp.toPx(), cap = StrokeCap.Round)
+            // Draw full circle background
             drawArc(
                 color = Color.LightGray,
-                startAngle = 0f,
-                sweepAngle = 360f,
-                useCenter = false,
-                style = stroke,
-                topLeft = topLeft,
-                size = arcSize
+                startAngle = 0f, sweepAngle = 360f, useCenter = false,
+                style = stroke
             )
+            // Draw progress arc
             drawArc(
                 color = Color(0xFF3B82F6),
-                startAngle = -90f,
-                sweepAngle = 360f * progress,
-                useCenter = false,
-                style = stroke,
-                topLeft = topLeft,
-                size = arcSize
+                startAngle = -90f, sweepAngle = 360f * progress, useCenter = false,
+                style = stroke
             )
         }
 
         when {
-            state.isError -> Text("Error")
+            state.isError   -> Text("Error")
             state.isLoading -> Text("Loading")
-            else -> Text(
-                text = "${state.dailyHydration?.total_intake_ml} L",
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Medium,
-                color = Color.Black
-            )
+            else            -> {
+                val intakeL = intakeMl / 1000f
+                Text(
+                    text = String.format("%.1f L", intakeL),
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Medium,
+                    color = Color.Black
+                )
+            }
         }
     }
 }
@@ -84,7 +82,7 @@ fun MetricCircle(label: String, value: String, color: Color) {
                         startAngle = 0f,
                         sweepAngle = 360f,
                         useCenter = false,
-                        style = Stroke(6.dp.toPx(), cap = StrokeCap.Round)
+                        style = Stroke(8.dp.toPx(), cap = StrokeCap.Round)
                     )
                 }
                 Text(value, fontSize = 20.sp, fontWeight = FontWeight.Bold, color = color)
