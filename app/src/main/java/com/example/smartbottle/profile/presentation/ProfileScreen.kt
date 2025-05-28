@@ -59,30 +59,8 @@ private fun ProfileScreenCore(
                 .background(Color(0xFFF8FAFC))
                 .verticalScroll(rememberScrollState())
         ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier
-                    .padding(top = 3.dp, bottom = 75.dp, start = 2.dp, end = 2.dp)
-                    .height(39.dp)
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp)
-            ) {
-                Text(
-                    text = "9:30",
-                    color = Color(0xFF171D1B),
-                    fontSize = 14.sp,
-                    modifier = Modifier.padding(start = 0.dp, top = 9.dp, end = 151.dp, bottom = 9.dp)
-                )
-                Box(
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(100.dp))
-                        .size(24.dp)
-                        .background(Color(0xFF2E2E2E))
-                )
-                Spacer(modifier = Modifier.weight(1f))
-            }
 
-            Column(modifier = Modifier.padding(bottom = 130.dp, start = 26.dp, end = 26.dp)) {
+            Column(modifier = Modifier.padding(top = 30.dp, start = 26.dp, end = 26.dp)) {
                 ProfileCardWithStyle(profile)
                 Spacer(modifier = Modifier.height(16.dp))
                 NotificationCardWithStyle(profile)
@@ -413,18 +391,4 @@ fun ProfileScreenPreview() {
         onNavigation = {}
     )
 
-}
-
-@Composable
-fun ProfileTextField(placeholder: String, value: String) {
-    TextFieldView(
-        value = value,
-        onValueChange = {}, // You can connect this to ViewModel if needed
-        placeholder = placeholder,
-        textStyle = androidx.compose.ui.text.TextStyle(fontSize = 12.sp),
-        modifier = Modifier
-            .fillMaxWidth()
-            .dashedBorder(color = Color.Gray, shape = RoundedCornerShape(8.dp))
-            .padding(bottom = 12.dp)
-    )
 }

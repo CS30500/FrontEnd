@@ -1,147 +1,119 @@
+// File: HomeScreen.kt
 package com.example.smartbottle.water.presentation
 
-import android.content.Intent
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.example.smartbottle.RunningService
 import com.example.smartbottle.core.presentation.ui.theme.SmartBottleTheme
-import com.example.smartbottle.history.presentation.HistoryAction
-import com.example.smartbottle.water.domain.DailyHydration
+import com.example.smartbottle.water.domain.DailyHydration as DomainDailyHydration
+import com.example.smartbottle.water.domain.Environment
 import org.koin.androidx.compose.koinViewModel
 
 @Composable
 fun HomeScreen(
-    viewmodel : HomeViewModel = koinViewModel(),
-    onNavigation : ()->Unit
-){
-   HomeScreenCore(
-       state = viewmodel.state,
-       onAction = viewmodel::onAction,
-       onNavigation
-   )
+    viewmodel: HomeViewModel = koinViewModel(),
+    onNavigation: () -> Unit
+) {
+    HomeScreenCore(
+        state = viewmodel.state,
+        onAction = viewmodel::onAction,
+        onNavigation = onNavigation
+    )
 }
-
 
 @Composable
 private fun HomeScreenCore(
     state: HomeState,
     onAction: (HomeAction) -> Unit,
     onNavigation: () -> Unit
-){
-    // juyoung modify
-    val context = LocalContext.current
-
+) {
+    val ctx = LocalContext.current
     Column(
-        modifier = Modifier.fillMaxSize(),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Top
-    ) {
-
-        DailyProgress(state)
-
-        Button(
-            onClick = onNavigation
-        ) {
-            Text("Go to Notification")
-        }
-
-        Button(
-            onClick = {
-                Intent(context, RunningService::class.java).also {
-                    it.action = RunningService.Actions.START.toString()
-                    context.startService(it)
-                }
-            }
-        ){
-            Text("Start")
-        }
-
-        Button(
-            onClick = {
-                Intent(context, RunningService::class.java).also {
-                    it.action = RunningService.Actions.STOP.toString()
-                    context.startService(it)
-                }
-            }
-        ){
-            Text("Stop")
-        }
-
-    }
-}
-
-@Composable
-fun DailyProgress(state:HomeState) {
-    Box(
         modifier = Modifier
-            .fillMaxWidth().padding(64.dp),
-        contentAlignment = Alignment.Center,
+            .fillMaxSize()
+            .background(Color.White),
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(1f)
+                .background(Color(0xFFF8FAFC))
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 16.dp, vertical = 24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .fillMaxHeight()
+                    .border(1.dp, Color(0x1A000000), RoundedCornerShape(16.dp))
+                    .background(Color.White, RoundedCornerShape(16.dp))
+                    .padding(16.dp)
+            ) {
+                DailyProgress(state)
+            }
 
-        val progress = state.dailyHydration?.total_intake_ml?.div(state.dailyHydration.target_ml)
-            ?.toFloat()
-            ?: 0f
+            Spacer(Modifier.height(24.dp))
 
-        Canvas(modifier = Modifier.size(250.dp)) {
-            val stroke = Stroke(width = 32.dp.toPx(), cap = StrokeCap.Round)
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .border(1.dp, Color(0x1A000000), RoundedCornerShape(16.dp))
+                    .background(Color.White, RoundedCornerShape(16.dp))
+                    .padding(24.dp)
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceEvenly
+                ) {
+                    val env = state.dailyHydration?.environment
+                    MetricCircle("OUTSIDE", "${env?.outsideTemp ?: "--"}°", Color(0xFFFF6A00))
+                    MetricCircle("WATER", "${env?.waterTemp ?: "--"}°", Color(0xFF457EDF))
+                    MetricCircle("HUMIDITY", "${env?.humidity ?: "--"}%", Color(0xFF8D66FF))
+                }
+            }
 
-            drawCircle(
-                color = Color.LightGray
-                ,
-                style = Stroke(width = 32.dp.toPx(), cap = StrokeCap.Round),
-            )
-            drawCircle(
-                color = Color.White,
-                style = Stroke(width = 28.dp.toPx(), cap = StrokeCap.Round),
-            )
-            drawArc(
-                color = Color(0xFF3B82F6), // blue
-                startAngle = -90f,
-                sweepAngle = 360f * progress,
-                useCenter = false,
-                style = stroke
-            )
-        }
+            Spacer(Modifier.height(24.dp))
 
-        if(state.isError){
-            Text("Error")
-        } else if(state.isLoading){
-            Text("Loading")
-        } else {
-            Text(
-                text = "${state.dailyHydration?.total_intake_ml} L",
-                style = MaterialTheme.typography.displayLarge.copy(
-                    color = Color.Black,
-                    fontWeight = FontWeight.Normal
-                )
-            )
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .border(1.dp, Color(0x1A000000), RoundedCornerShape(16.dp))
+                    .background(Color.White, RoundedCornerShape(16.dp))
+                    .padding(24.dp)
+            ) {
+                ReminderList(state.reminders)
+            }
+            Spacer(Modifier.height(24.dp))
+
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .border(1.dp, Color(0x1A000000), RoundedCornerShape(16.dp))
+                    .background(Color.White, RoundedCornerShape(16.dp))
+                    .padding(24.dp)
+            ) {
+                StartStopButtons(ctx)
+            }
+
         }
 
     }
 }
-
 
 @Preview(showBackground = true)
 @Composable
@@ -149,10 +121,20 @@ private fun HomeScreenPreview() {
     SmartBottleTheme {
         HomeScreenCore(
             state = HomeState(
-                dailyHydration = DailyHydration(
-                    date = "2022-12-25" ,
+                dailyHydration = DomainDailyHydration(
+                    date = "2022-12-25",
                     total_intake_ml = 1.87,
                     target_ml = 2.4,
+                    environment = Environment(
+                        outsideTemp = 21.2,
+                        waterTemp = 12.2,
+                        humidity = 67.5
+                    )
+                ),
+                reminders = listOf(
+                    Reminder("Regular reminder", "0.72L left · 4:46 PM", Color(0xFF457EDF)),
+                    Reminder("Unsafe water alert", "2h 48m · 2:14 PM", Color(0xFFFF6A00)),
+                    Reminder("Weather is hot today", "120mL/hr · 12:00 PM", Color(0xFFFF6A00))
                 )
             ),
             onAction = {},
