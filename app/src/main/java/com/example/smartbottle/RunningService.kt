@@ -19,7 +19,6 @@ class RunningService() :  Service() {
     override fun onCreate() {
         super.onCreate()
         coreRepository.bleConnect()
-
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -27,6 +26,7 @@ class RunningService() :  Service() {
             Actions.START.toString() -> start()
             Actions.STOP.toString() -> stopSelf()
         }
+
         return super.onStartCommand(intent, flags, startId)
     }
 
@@ -37,7 +37,7 @@ class RunningService() :  Service() {
             .setContentTitle("Smart Bottle")
             .setContentText("Retrieving SmartBottle data")
             .build()
-
+        coreRepository.sendCommandToDevice("BUZZ_ON\n")
         startForeground(1, notification)
     }
 

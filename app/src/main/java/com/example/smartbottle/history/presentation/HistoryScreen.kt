@@ -43,6 +43,7 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.smartbottle.core.presentation.ui.theme.SmartBottleTheme
+import com.example.smartbottle.history.domain.HistoryItem
 import org.koin.androidx.compose.koinViewModel
 import java.time.YearMonth
 import java.time.format.TextStyle
@@ -185,6 +186,13 @@ fun CalendarWithProgress(
 
         Spacer(modifier = Modifier.height(8.dp))
 
+        val dayProgressList = remember(state.monthPercents, state.selectedMonth) {
+            (1..daysInMonth).map { d ->
+                val prog = state.monthPercents.firstOrNull { it.first == d }?.second ?: 0f
+                d to prog
+            }
+        }
+
         // 날짜 그리드
         LazyVerticalGrid(
             columns = GridCells.Fixed(7),
@@ -196,8 +204,8 @@ fun CalendarWithProgress(
                 if (index < firstDayOfWeek) {
                     Box(modifier = Modifier.size(40.dp))
                 } else {
-                    val day = days[index - firstDayOfWeek]
-                    DayWithProgress(day.first, day.second, isSelected = state.selectedDay == day.first, onAction)
+                    val (day, prog) = dayProgressList[index - firstDayOfWeek]
+                    DayWithProgress(day, prog, state.selectedDay == day, onAction)
                 }
             }
         }
@@ -327,9 +335,43 @@ fun MonthlyStatisticsCard(percentList: List<Float> = listOf(0.1f, 0.2f, 0.3f, 0.
 @Preview(showBackground = true)
 @Composable
 private fun HistoryScreenPreview(){
+
+    val mockState = HistoryState(
+        isLoading = false,
+        historyList = listOf(
+            HistoryItem(
+                date = "2023-10-01",
+                target_ml = 2000.0,
+                total_intake_ml = 1500.0
+            ),
+            HistoryItem(
+                date = "2023-10-02",
+                target_ml = 2500.0,
+                total_intake_ml = 1000.0
+            ),
+            HistoryItem(
+                date = "2023-10-03",
+                target_ml = 2000.0,
+                total_intake_ml = 2000.0
+            )
+        ),
+        monthPercents = listOf(
+            1 to 0.75f,
+            2 to 0.4f,
+            3 to 1.0f
+        ),
+        monthStatistics = listOf(0.7f, 0.85f, 0.9f, 0.2f),
+        selectedDay = 1,
+        selectedMonth = YearMonth.now(),
+        streakCount = 2,
+        isError = false
+    )
+
+
+
     SmartBottleTheme {
         HistoryScreenCore(
-            state = HistoryState(),
+            state = mockState,
             onAction = {},
             onNavigation = {}
         )
