@@ -53,7 +53,7 @@ private fun HomeScreenCore(
                 .weight(1f)
                 .background(Color(0xFFF8FAFC))
                 .verticalScroll(rememberScrollState())
-                .padding(horizontal = 16.dp, vertical = 24.dp),
+                .padding(horizontal = 24.dp, vertical = 24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Box(
@@ -62,7 +62,7 @@ private fun HomeScreenCore(
                     .fillMaxHeight()
                     .border(1.dp, Color(0x1A000000), RoundedCornerShape(16.dp))
                     .background(Color.White, RoundedCornerShape(16.dp))
-                    .padding(16.dp)
+                    .padding(horizontal = 24.dp, vertical = 24.dp)
             ) {
                 DailyProgress(state)
             }
@@ -74,7 +74,7 @@ private fun HomeScreenCore(
                     .fillMaxWidth()
                     .border(1.dp, Color(0x1A000000), RoundedCornerShape(16.dp))
                     .background(Color.White, RoundedCornerShape(16.dp))
-                    .padding(24.dp)
+                    .padding(horizontal = 0.dp, vertical = 24.dp)
             ) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -94,7 +94,7 @@ private fun HomeScreenCore(
                     .fillMaxWidth()
                     .border(1.dp, Color(0x1A000000), RoundedCornerShape(16.dp))
                     .background(Color.White, RoundedCornerShape(16.dp))
-                    .padding(24.dp)
+                    .padding(horizontal = 32.dp, vertical = 32.dp)
             ) {
                 ReminderList(state.reminders)
             }
