@@ -48,6 +48,8 @@ class PushNotificationService: FirebaseMessagingService() {
 
             notificationManager.notify(0, notificationBuilder.build())
         }
+
+        coreRepository.sendCommandToDevice("BUZZ_ON\n")
     }
 
 }

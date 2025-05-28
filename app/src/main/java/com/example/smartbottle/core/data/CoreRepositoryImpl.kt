@@ -15,12 +15,14 @@ import android.bluetooth.le.ScanResult
 import android.bluetooth.le.ScanSettings
 import android.content.Context
 import android.content.SharedPreferences
+import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.annotation.RequiresPermission
+import androidx.core.content.ContextCompat
 import com.example.smartbottle.core.domain.CoreRepository
 import com.example.smartbottle.core.domain.CoreResult
 import io.ktor.client.HttpClient
@@ -297,6 +299,30 @@ class CoreRepositoryImpl(
 
     fun setNotifyCallback(callback: (String) -> Unit) {
         this.notifyCallback = callback
+    }
+
+    override fun sendCommandToDevice(command: String) {
+        // 쓰기 권한 체크
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            val granted = ContextCompat.checkSelfPermission(
+                context, Manifest.permission.BLUETOOTH_CONNECT
+            ) == PackageManager.PERMISSION_GRANTED
+            if (!granted) {
+                Log.e(tag, "BLUETOOTH_CONNECT 권한이 없습니다.")
+                return
+            }
+        }
+
+        val service = bluetoothGatt?.getService(BleConstants.SERVICE_UUID) ?: return
+        val char = service.getCharacteristic(BleConstants.CHARACTERISTIC_UUID) ?: return
+
+        try {
+            char.value = command.toByteArray(Charsets.UTF_8)
+            val ok = bluetoothGatt?.writeCharacteristic(char) ?: false
+            Log.d(tag, if (ok) "✅ Sent: $command" else "❌ Send failed")
+        } catch (e: SecurityException) {
+            Log.e(tag, "명령 전송 중 보안 예외", e)
+        }
     }
 
     @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
