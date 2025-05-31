@@ -37,7 +37,7 @@ fun DailyProgress(state: HomeState) {
         contentAlignment = Alignment.Center
     ) {
         Canvas(modifier = Modifier.fillMaxSize()) {
-            val stroke = Stroke(width = 40.dp.toPx(), cap = StrokeCap.Round)
+            val stroke = Stroke(width = 32.dp.toPx(), cap = StrokeCap.Round)
             // Draw full circle background
             drawArc(
                 color = Color.LightGray,

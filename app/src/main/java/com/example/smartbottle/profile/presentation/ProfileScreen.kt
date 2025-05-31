@@ -377,8 +377,8 @@ fun ProfileScreenPreview() {
         hydration = 94,
         alertTemperature = 24.0,
         hydrationReminder = 150,
-        dndStart = 1300,
-        dndEnd = 2100
+        dndStart = 100,
+        dndEnd = 900
     )
 
     ProfileScreenCore(

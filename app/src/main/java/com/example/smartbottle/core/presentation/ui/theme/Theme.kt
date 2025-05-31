@@ -15,19 +15,20 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 
+
 private val DarkColorScheme = darkColorScheme(
-    primary = Blue,
-    secondary = LightBlue,
-    tertiary = veryLightBlue,
+    primary = Blue3,
+    secondary = Blue2,
+    tertiary = Blue1,
     background = Color.White,
     surface = Color.White,
 
     )
 
 private val LightColorScheme = lightColorScheme(
-    primary = Blue,
-    secondary = LightBlue,
-    tertiary = veryLightBlue,
+    primary = Blue3,
+    secondary = Blue2,
+    tertiary = Blue1,
     background = Color.White,
     surface = Color.White,
 

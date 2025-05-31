@@ -16,7 +16,8 @@ val SFProText = FontFamily(
 )
 
 val SFProDisplay = FontFamily(
-    Font(R.font.sf_pro_display_bold, FontWeight.Bold)
+    Font(R.font.sf_pro_display_bold, FontWeight.Bold),
+    Font(R.font.sf_pro_display_heavy, FontWeight.ExtraBold)
 )
 
 // Set of Material typography styles to start with
