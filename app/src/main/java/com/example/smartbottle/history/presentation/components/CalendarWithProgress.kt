@@ -48,7 +48,14 @@ fun CalendarWithProgress(
                 Icon(Icons.Default.ChevronLeft, contentDescription = "Previous Month")
             }
 
-            Text("$monthName $year", style = MaterialTheme.typography.titleMedium)
+            Text(
+                text = "$monthName $year",
+                style = MaterialTheme.typography.titleLarge.copy(
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 20.sp,
+                    color = Blue4
+                )
+            )
 
             IconButton(onClick = { onAction(HistoryAction.ChangeMonth(state.selectedMonth.plusMonths(1))) }) {
                 Icon(Icons.Default.ChevronRight, contentDescription = "Next Month")
