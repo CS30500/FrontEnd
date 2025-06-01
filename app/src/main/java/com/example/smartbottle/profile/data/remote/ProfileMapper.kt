@@ -8,6 +8,15 @@ fun ProfileDto.toProfile(): Profile {
         height = height,
         sex = sex,
         user_id = user_id,
-        weight = weight
+        weight = weight,
+        totalDays = totalDays,
+        longestStreak = longestStreak,
+        hydration = hydration,
+        alertTemperature = alertTemperature,
+        hydrationReminder = hydrationReminder,
+        dndStart = dndStart,
+        dndEnd = dndEnd
     )
 }
+
+

@@ -1,3 +1,5 @@
+//ProfileViewModel.kt
+
 package com.example.smartbottle.profile.presentation
 
 import androidx.compose.runtime.getValue
@@ -22,7 +24,18 @@ class ProfileViewModel(
     }
 
     fun onAction(action: ProfileAction) {
+        when (action) {
+            is ProfileAction.SaveNotificationSettings -> {
+                saveNotificationSettings(
+                    alertTemperature = action.alertTemperature,
+                    hydrationReminder = action.hydrationReminder,
+                    dndStart = action.dndStart,
+                    dndEnd = action.dndEnd
+                )
+            }
 
+            else -> {}
+        }
     }
 
     private fun loadProfile(){
@@ -54,4 +67,24 @@ class ProfileViewModel(
             )
         }
     }
+    private fun saveNotificationSettings(
+        alertTemperature: Double?,
+        hydrationReminder: Int?,
+        dndStart: Int?,
+        dndEnd: Int?
+    ) {
+        viewModelScope.launch {
+            val updated = state.profile?.copy(
+                alertTemperature = alertTemperature,
+                hydrationReminder = hydrationReminder,
+                dndStart = dndStart,
+                dndEnd = dndEnd
+            ) ?: return@launch
+
+            profileRepository.updateProfile(updated)
+
+            state = state.copy(profile = updated)
+        }
+    }
 }
+

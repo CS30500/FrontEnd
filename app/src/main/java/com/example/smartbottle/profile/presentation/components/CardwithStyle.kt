@@ -11,7 +11,8 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.example.smartbottle.core.presentation.ui.theme.Gray2
-import com.example.smartbottle.profile.domain.Profile
+import com.example.smartbottle.profile.domain.*
+import com.example.smartbottle.profile.presentation.ProfileViewModel
 
 @Composable
 fun ProfileCardWithStyle(profile: Profile?) {
@@ -32,7 +33,7 @@ fun ProfileCardWithStyle(profile: Profile?) {
 }
 
 @Composable
-fun NotificationCardWithStyle(profile: Profile?) {
+fun NotificationCardWithStyle(profile: Profile?, viewModel: ProfileViewModel) {
     Box(
         modifier = Modifier
             .wrapContentHeight()
@@ -45,7 +46,7 @@ fun NotificationCardWithStyle(profile: Profile?) {
             .background(Color.White, RoundedCornerShape(16.dp))
             .padding(horizontal = 20.dp, vertical = 8.dp)
     ) {
-        NotificationCard(profile)
+        NotificationCard(profile, viewModel)
     }
 }
 

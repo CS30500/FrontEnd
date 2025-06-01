@@ -7,3 +7,10 @@ data class ProfileState(
     val isLoading: Boolean = false,
     val isError: Boolean = false
 )
+
+data class SaveNotificationSettings(
+    val alertTemperature: Double?,
+    val hydrationReminder: Int?,
+    val dndStart: Int?,
+    val dndEnd: Int?
+)

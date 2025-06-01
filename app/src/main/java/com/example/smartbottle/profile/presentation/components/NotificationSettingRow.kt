@@ -2,7 +2,9 @@
 package com.example.smartbottle.profile.presentation.components
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
@@ -35,6 +37,39 @@ fun NotificationSettingRow(label: String, value: String) {
             color = Blue4,
             textAlign = TextAlign.End,
             modifier = Modifier.wrapContentWidth()
+        )
+    }
+}
+
+
+@Composable
+fun NotificationInputRow(
+    label: String,
+    value: String,
+    onValueChange: (String) -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(bottom = 12.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text = label,
+            fontSize = 12.sp,
+            fontWeight = FontWeight.SemiBold,
+            color = Gray3,
+            modifier = Modifier.weight(1f)
+        )
+        TextField(
+            value = value,
+            onValueChange = onValueChange,
+            modifier = Modifier.weight(1f),
+            textStyle = LocalTextStyle.current.copy(
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Bold
+            ),
+            singleLine = true
         )
     }
 }

@@ -18,7 +18,8 @@ import com.example.smartbottle.profile.presentation.components.NotificationCardW
 fun ProfileScreenCore(
     state: ProfileState,
     onAction: (ProfileAction) -> Unit,
-    onNavigation: () -> Unit
+    onNavigation: () -> Unit,
+    viewModel: ProfileViewModel
 ) {
     val profile = state.profile
 
@@ -37,7 +38,7 @@ fun ProfileScreenCore(
             Column(modifier = Modifier.padding(top = 30.dp, start = 26.dp, end = 26.dp)) {
                 ProfileCardWithStyle(profile)
                 Spacer(modifier = Modifier.height(16.dp))
-                NotificationCardWithStyle(profile)
+                NotificationCardWithStyle(profile, viewModel)
                 Spacer(modifier = Modifier.height(16.dp))
                 PersonalInfoCardWithStyle(profile)
             }

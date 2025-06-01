@@ -9,6 +9,8 @@ import com.example.smartbottle.profile.domain.ProfileRepository
 import com.example.smartbottle.profile.domain.ProfileResult
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
+import io.ktor.client.request.put
+import io.ktor.client.request.setBody
 import io.ktor.client.request.get
 import io.ktor.client.request.header
 import io.ktor.client.statement.bodyAsText
@@ -62,5 +64,40 @@ class ProfileRepositoryImpl(
 
     }
 
+    override suspend fun updateProfile(profile: Profile): Result<Unit> {
+        return try {
+            val token = prefs.getString("jwt", null) ?: throw IllegalStateException("토큰이 없습니다.")
 
+            httpClient.put("$baseUrl/profile") {
+                header("Authorization", "Bearer $token")
+                setBody(profile.toDto()) // convert Profile to ProfileDto
+            }
+
+            Result.success(Unit)
+        } catch (e: Exception) {
+            e.printStackTrace()
+            if (e is CancellationException) throw e
+            Result.failure(e)
+        }
+    }
+
+
+
+}
+
+fun Profile.toDto(): ProfileDto {
+    return ProfileDto(
+        age = age,
+        height = height,
+        sex = sex,
+        user_id = user_id,
+        weight = weight,
+        totalDays = totalDays,
+        longestStreak = longestStreak,
+        hydration = hydration,
+        alertTemperature = alertTemperature,
+        hydrationReminder = hydrationReminder,
+        dndStart = dndStart,
+        dndEnd = dndEnd
+    )
 }

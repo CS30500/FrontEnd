@@ -12,6 +12,7 @@ fun ProfileScreen(
     ProfileScreenCore(
         state = viewmodel.state,
         onAction = viewmodel::onAction,
-        onNavigation = onNavigation
+        onNavigation = onNavigation,
+        viewModel = viewmodel
     )
 }

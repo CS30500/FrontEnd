@@ -3,6 +3,8 @@ package com.example.smartbottle.profile.presentation
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.tooling.preview.Preview
 import com.example.smartbottle.profile.domain.Profile
+import com.example.smartbottle.profile.domain.ProfileRepository
+import kotlinx.coroutines.flow.flow
 
 @Preview(showBackground = true)
 @Composable
@@ -22,6 +24,19 @@ fun ProfileScreenPreview() {
         dndEnd = 900
     )
 
+    // ✅ Dummy repo (no inheritance)
+    val mockRepository = object : ProfileRepository {
+        override suspend fun getProfile() = flow {
+            emit(com.example.smartbottle.profile.domain.ProfileResult.Success(mockProfile))
+        }
+
+        override suspend fun updateProfile(profile: Profile): Result<Unit> {
+            return Result.success(Unit)
+        }
+    }
+
+    val dummyViewModel = ProfileViewModel(mockRepository)
+
     ProfileScreenCore(
         state = ProfileState(
             isLoading = false,
@@ -29,6 +44,7 @@ fun ProfileScreenPreview() {
             profile = mockProfile
         ),
         onAction = {},
-        onNavigation = {}
+        onNavigation = {},
+        viewModel = dummyViewModel // ✅ fixed injection
     )
 }

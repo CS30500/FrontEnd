@@ -28,9 +28,7 @@ fun EditableCardLayout(
             .padding(12.dp)
     ) {
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 16.dp),
+            modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -42,20 +40,32 @@ fun EditableCardLayout(
                     fontSize = 20.sp
                 )
             )
-            Row(verticalAlignment = Alignment.CenterVertically) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically
+            ) {
                 if (isEditing) {
                     TextButton(onClick = onSave) {
-                        Text("Save")
+                        Text(
+                            text = "Save",
+                            color = Blue4,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 14.sp
+                        )
                     }
                 }
-                IconButton(onClick = onEditToggle) {
-                    Icon(
-                        imageVector = Icons.Default.Edit,
-                        contentDescription = if (isEditing) "Cancel" else "Edit"
-                    )
+                else {
+                    IconButton(onClick = onEditToggle) {
+                        Icon(
+                            imageVector = Icons.Default.Edit,
+                            contentDescription = if (isEditing) "Cancel" else "Edit",
+                            tint = Blue4
+                        )
+                    }
                 }
             }
         }
+
+        Spacer(modifier = Modifier.height(16.dp))
 
         if (isEditing) {
             editableContent()
