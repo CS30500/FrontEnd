@@ -14,9 +14,9 @@ data class Profile(
     val hydration: Int? = null,
 
     // New structured fields
-    val alertTemperature: Double? = null,   // e.g., 24.0
-    val hydrationReminder: Int? = null,     // minutes → 150
-    val dndStart: Int? = null,              // e.g., 1300
-    val dndEnd: Int? = null                 // e.g., 2100
+    val alertTemperature: String = "",   // e.g., 24.0
+    val hydrationReminder: String = "",     // minutes → 150
+    val dndStart: String = "",              // e.g., 1300
+    val dndEnd: String = ""                 // e.g., 2100
 )
 

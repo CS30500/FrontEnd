@@ -3,6 +3,7 @@ package com.example.smartbottle.profile.data
 import android.content.SharedPreferences
 import com.example.smartbottle.core.data.NetworkConstants
 import com.example.smartbottle.profile.data.remote.ProfileDto
+import com.example.smartbottle.profile.data.remote.toDto
 import com.example.smartbottle.profile.data.remote.toProfile
 import com.example.smartbottle.profile.domain.Profile
 import com.example.smartbottle.profile.domain.ProfileRepository
@@ -13,6 +14,7 @@ import io.ktor.client.request.put
 import io.ktor.client.request.setBody
 import io.ktor.client.request.get
 import io.ktor.client.request.header
+import io.ktor.client.request.post
 import io.ktor.client.statement.bodyAsText
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
@@ -64,20 +66,19 @@ class ProfileRepositoryImpl(
 
     }
 
-    override suspend fun updateProfile(profile: Profile): Result<Unit> {
+    override suspend fun updateProfile(profile: Profile): ProfileResult<Unit> {
         return try {
             val token = prefs.getString("jwt", null) ?: throw IllegalStateException("토큰이 없습니다.")
 
-            httpClient.put("$baseUrl/profile") {
+            httpClient.post("$baseUrl/profile/") {
                 header("Authorization", "Bearer $token")
                 setBody(profile.toDto()) // convert Profile to ProfileDto
             }
-
-            Result.success(Unit)
+            ProfileResult.Success(Unit)
         } catch (e: Exception) {
             e.printStackTrace()
             if (e is CancellationException) throw e
-            Result.failure(e)
+            ProfileResult.Error("프로필 정보 업데이트에 실패했습니다.")
         }
     }
 
@@ -85,19 +86,3 @@ class ProfileRepositoryImpl(
 
 }
 
-fun Profile.toDto(): ProfileDto {
-    return ProfileDto(
-        age = age,
-        height = height,
-        sex = sex,
-        user_id = user_id,
-        weight = weight,
-        totalDays = totalDays,
-        longestStreak = longestStreak,
-        hydration = hydration,
-        alertTemperature = alertTemperature,
-        hydrationReminder = hydrationReminder,
-        dndStart = dndStart,
-        dndEnd = dndEnd
-    )
-}

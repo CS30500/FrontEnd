@@ -6,46 +6,28 @@ import com.example.smartbottle.profile.domain.Profile
 import androidx.compose.runtime.Composable
 import com.example.smartbottle.profile.presentation.ProfileViewModel
 import com.example.smartbottle.profile.presentation.ProfileAction
-
-
+import com.example.smartbottle.profile.presentation.ProfileState
 
 
 @Composable
 fun NotificationCard(
-    profile: Profile?,
-    viewModel: ProfileViewModel
+    state: ProfileState,
+    onAction: (ProfileAction) -> Unit
 ) {
     var isEditing by remember { mutableStateOf(false) }
-
-    // Editable states
-    var temp by remember { mutableStateOf(profile?.alertTemperature?.toString() ?: "") }
-    var reminder by remember { mutableStateOf(profile?.hydrationReminder?.toString() ?: "") }
-    var dndStart by remember { mutableStateOf(profile?.dndStart?.toString() ?: "") }
-    var dndEnd by remember { mutableStateOf(profile?.dndEnd?.toString() ?: "") }
-
 
     EditableCardLayout(
         title = "Notification Settings",
         isEditing = isEditing,
         onEditToggle = { isEditing = !isEditing },
         onSave = {
-            val newProfile = profile?.copy(
-                alertTemperature = temp.toDoubleOrNull(),
-                hydrationReminder = reminder.toIntOrNull(),
-                dndStart = dndStart.toIntOrNull(),
-                dndEnd = dndEnd.toIntOrNull()
-            )
 
-            if (newProfile != null) {
-                viewModel.onAction(
-                    ProfileAction.SaveNotificationSettings(
-                        alertTemperature = newProfile.alertTemperature,
-                        hydrationReminder = newProfile.hydrationReminder,
-                        dndStart = newProfile.dndStart,
-                        dndEnd = newProfile.dndEnd
-                    )
-                )
-            }
+                onAction(ProfileAction.SaveNotificationSettings(
+                    alertTemperature = state.profile?.alertTemperature?.toDoubleOrNull(),
+                    hydrationReminder = state.profile?.hydrationReminder?.toIntOrNull(),
+                    dndStart = state.profile?.dndStart?.toIntOrNull(),
+                    dndEnd = state.profile?.dndEnd?.toIntOrNull()
+                ))
 
 
             isEditing = false
@@ -54,34 +36,57 @@ fun NotificationCard(
         readOnlyContent = {
             NotificationSettingRow(
                 "High temperature alert",
-                profile?.alertTemperature?.let { "over ${it.toInt()}°C" } ?: "--"
+                if(state.profile?.alertTemperature != "") {
+                    "over ${state.profile?.alertTemperature}°C"
+                } else {
+                    "--"
+                }
             )
             NotificationSettingRow(
                 "Reminder after last hydration",
-                profile?.hydrationReminder?.let { "${it / 60}h ${it % 60}m" } ?: "--"
+                if (state.profile?.hydrationReminder != "" && state.profile?.hydrationReminder != "null") {
+                    state.profile?.hydrationReminder?.toIntOrNull()?.let { minutes ->
+                        "${minutes.div(60)}h ${minutes.rem(60)}m"
+                    } ?: "--"
+                } else {
+                    "--"
+                }
             )
             NotificationSettingRow(
                 "Do not disturb",
-                if (profile?.dndStart != null && profile.dndEnd != null)
-                    "${formatTime(profile.dndStart)} ~ ${formatTime(profile.dndEnd)}"
+                if (state.profile?.dndStart != "" && state.profile?.dndStart != "null")
+                    "${state.profile?.dndStart?.let { formatTime(it.toInt()) }} ~ ${state.profile?.dndEnd?.let {
+                        formatTime(
+                            it.toInt())
+                    }}"
                 else "--"
             )
         },
         editableContent = {
+            state.profile?.alertTemperature?.let { it ->
+                NotificationInputRow(
+                    label = "High temperature alert",
+                    value = it,
+                    onValueChange = { onAction(ProfileAction.ChangeTemp(it)) }
+                )
+            }
+            state.profile?.hydrationReminder?.let { it  ->
+                NotificationInputRow(
+                    label = "Reminder after last hydration",
+                    value = it,
+                    onValueChange = { onAction(ProfileAction.ChangeReminder(it)) }
+                )
+            }
             NotificationInputRow(
-                label = "High temperature alert",
-                value = temp,
-                onValueChange = { temp = it }
+                label = "Do not disturb (start time)",
+                value = "${state.profile?.dndStart}", // optional: later split into two inputs
+                onValueChange = { onAction(ProfileAction.ChangeDndStart(it)) }
             )
+
             NotificationInputRow(
-                label = "Reminder after last hydration",
-                value = reminder,
-                onValueChange = { reminder = it }
-            )
-            NotificationInputRow(
-                label = "Do not disturb",
-                value = "$dndStart ~ $dndEnd", // optional: later split into two inputs
-                onValueChange = { /* no-op for now */ }
+                label = "Do not disturb (End time)",
+                value = "${state.profile?.dndEnd}", // optional: later split into two inputs
+                onValueChange = { onAction(ProfileAction.ChangeDndEnd(it)) }
             )
         }
 

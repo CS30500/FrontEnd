@@ -4,6 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.tooling.preview.Preview
 import com.example.smartbottle.profile.domain.Profile
 import com.example.smartbottle.profile.domain.ProfileRepository
+import com.example.smartbottle.profile.domain.ProfileResult
 import kotlinx.coroutines.flow.flow
 
 @Preview(showBackground = true)
@@ -18,10 +19,10 @@ fun ProfileScreenPreview() {
         totalDays = 264,
         longestStreak = 32,
         hydration = 94,
-        alertTemperature = 24.0,
-        hydrationReminder = 150,
-        dndStart = 100,
-        dndEnd = 900
+        alertTemperature = 24.0.toString(),
+        hydrationReminder = 150.toString(),
+        dndStart = 100.toString(),
+        dndEnd = 900.toString()
     )
 
     // ✅ Dummy repo (no inheritance)
@@ -30,8 +31,8 @@ fun ProfileScreenPreview() {
             emit(com.example.smartbottle.profile.domain.ProfileResult.Success(mockProfile))
         }
 
-        override suspend fun updateProfile(profile: Profile): Result<Unit> {
-            return Result.success(Unit)
+        override suspend fun updateProfile(profile: Profile): ProfileResult<Unit> {
+            return ProfileResult.Success(Unit)
         }
     }
 

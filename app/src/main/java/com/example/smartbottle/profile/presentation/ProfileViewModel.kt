@@ -8,6 +8,7 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.smartbottle.history.domain.HistoryResult
+import com.example.smartbottle.profile.domain.Profile
 import com.example.smartbottle.profile.domain.ProfileRepository
 import com.example.smartbottle.profile.domain.ProfileResult
 import kotlinx.coroutines.launch
@@ -33,8 +34,30 @@ class ProfileViewModel(
                     dndEnd = action.dndEnd
                 )
             }
+            is ProfileAction.ChangeTemp -> {
+                state = state.copy(
+                    profile = state.profile?.copy(alertTemperature = action.newTemp)
+                )
+            }
 
-            else -> {}
+            is ProfileAction.ChangeReminder -> {
+                state = state.copy(
+                    profile = state.profile?.copy(hydrationReminder = action.newReminder)
+                )
+            }
+
+            is ProfileAction.ChangeDndStart -> {
+                state = state.copy(
+                    profile = state.profile?.copy(dndStart = action.newDndStart))
+            }
+
+            is ProfileAction.ChangeDndEnd -> {
+                state = state.copy(
+                    profile = state.profile?.copy(dndEnd = action.newDndEnd))
+            }
+
+
+            is ProfileAction.SavePersonalInfo -> TODO()
         }
     }
 
@@ -75,10 +98,10 @@ class ProfileViewModel(
     ) {
         viewModelScope.launch {
             val updated = state.profile?.copy(
-                alertTemperature = alertTemperature,
-                hydrationReminder = hydrationReminder,
-                dndStart = dndStart,
-                dndEnd = dndEnd
+                alertTemperature = alertTemperature.toString(),
+                hydrationReminder = hydrationReminder.toString(),
+                dndStart = dndStart.toString(),
+                dndEnd = dndEnd.toString()
             ) ?: return@launch
 
             profileRepository.updateProfile(updated)
