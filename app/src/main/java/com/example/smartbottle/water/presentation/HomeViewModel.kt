@@ -22,6 +22,11 @@ class HomeViewModel (
     }
 
     fun onAction(action: HomeAction) {
+        when (action) {
+            is HomeAction.ChangeWater -> {
+                state = state.copy(dirtyWater = !state.dirtyWater)
+            }
+        }
     }
 
     private fun loadDailyHydration() {

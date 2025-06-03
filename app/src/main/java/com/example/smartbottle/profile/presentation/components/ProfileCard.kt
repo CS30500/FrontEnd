@@ -5,6 +5,9 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AccountCircle
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -31,9 +34,9 @@ fun ProfileCard(profile: Profile?) {
             modifier = Modifier.padding(bottom = 20.dp)
         ){
             Image(
-                painter = painterResource(id = R.drawable.ic_launcher_background),
+                imageVector = Icons.Default.AccountCircle,
                 contentDescription = null,
-                modifier = Modifier.size(52.dp).padding(end = 20.dp)
+                modifier = Modifier.size(100.dp).padding(end = 20.dp)
             )
             Column {
                 Text(profile?.user_id ?: "Unknown", fontSize = 24.sp, fontWeight = FontWeight.Bold, color = Black)

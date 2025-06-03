@@ -41,6 +41,7 @@ fun ProfileScreenCore(
                 NotificationCardWithStyle(state, onAction)
                 Spacer(modifier = Modifier.height(16.dp))
                 PersonalInfoCardWithStyle(profile)
+                Spacer(modifier = Modifier.height(16.dp))
             }
         }
     }

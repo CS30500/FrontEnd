@@ -8,7 +8,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Save
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.sp
 import com.example.smartbottle.core.presentation.ui.theme.*
 
@@ -38,20 +40,34 @@ fun EditableCardLayout(
                     fontWeight = FontWeight.ExtraBold,
                     color = Black,
                     fontSize = 20.sp
-                )
+                ),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
             )
             Row(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 if (isEditing) {
-                    TextButton(onClick = onSave) {
+
+                    IconButton(onClick = onSave) {
+                        Icon(
+                            imageVector = Icons.Default.Save,
+                            contentDescription = "Save",
+                            tint = Blue4
+                        )
+                    }
+
+                    /*TextButton(onClick = onSave) {
                         Text(
                             text = "Save",
                             color = Blue4,
                             fontWeight = FontWeight.Bold,
-                            fontSize = 14.sp
+                            fontSize = 14.sp,
+                            modifier = Modifier.padding(4.dp),
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
                         )
-                    }
+                    }*/
                 }
                 else {
                     IconButton(onClick = onEditToggle) {

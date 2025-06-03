@@ -46,7 +46,7 @@ fun DailyProgress(state: HomeState) {
             )
             // Draw progress arc
             drawArc(
-                color = Color(0xFF3B82F6),
+                color = if(state.dirtyWater) Color(0xFFFF1C1C) else Color(0xFF3B82F6),
                 startAngle = -90f, sweepAngle = 360f * progress, useCenter = false,
                 style = stroke
             )

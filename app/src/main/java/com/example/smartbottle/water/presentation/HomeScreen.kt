@@ -8,11 +8,17 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AutoDelete
+import androidx.compose.material.icons.filled.Image
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
@@ -58,21 +64,57 @@ private fun HomeScreenCore(
         ) {
             Box(
                 modifier = Modifier
+                    .shadow(
+                        elevation = 4.dp,
+                        shape = RoundedCornerShape(16.dp),
+                        clip = false
+                    )
                     .fillMaxWidth()
                     .fillMaxHeight()
-                    .border(1.dp, Color(0x1A000000), RoundedCornerShape(16.dp))
+//                    .border(1.dp, Color(0x1A000000), RoundedCornerShape(16.dp))
                     .background(Color.White, RoundedCornerShape(16.dp))
                     .padding(horizontal = 24.dp, vertical = 24.dp)
+
             ) {
                 DailyProgress(state)
+
+                Button(
+                    onClick = { onAction(HomeAction.ChangeWater)},
+                    modifier = Modifier
+                        .width(48.dp)
+                        .height(24.dp)
+                        .align(Alignment.BottomEnd),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFF457EDF),
+                        contentColor = Color.White
+                    ),
+                    shape = CircleShape,
+                    contentPadding = PaddingValues(
+                    ),
+                    elevation = ButtonDefaults.buttonElevation(
+                        defaultElevation = 8.dp
+                    )
+                ){
+                    Icon(
+                        Icons.Default.AutoDelete,
+                        contentDescription = "Change Water",
+                        modifier = Modifier.padding(start = 5.dp, end = 0.dp, top = 4.dp, bottom = 4.dp)
+                    )
+                }
             }
+
 
             Spacer(Modifier.height(24.dp))
 
             Box(
                 modifier = Modifier
+                    .shadow(
+                        elevation = 4.dp,
+                        shape = RoundedCornerShape(16.dp),
+                        clip = false
+                    )
                     .fillMaxWidth()
-                    .border(1.dp, Color(0x1A000000), RoundedCornerShape(16.dp))
+//                    .border(1.dp, Color(0x1A000000), RoundedCornerShape(16.dp))
                     .background(Color.White, RoundedCornerShape(16.dp))
                     .padding(horizontal = 0.dp, vertical = 24.dp)
             ) {
@@ -91,8 +133,13 @@ private fun HomeScreenCore(
 
             Box(
                 modifier = Modifier
+                    .shadow(
+                        elevation = 4.dp,
+                        shape = RoundedCornerShape(16.dp),
+                        clip = false
+                    )
                     .fillMaxWidth()
-                    .border(1.dp, Color(0x1A000000), RoundedCornerShape(16.dp))
+//                    .border(1.dp, Color(0x1A000000), RoundedCornerShape(16.dp))
                     .background(Color.White, RoundedCornerShape(16.dp))
                     .padding(horizontal = 32.dp, vertical = 32.dp)
             ) {
@@ -102,8 +149,13 @@ private fun HomeScreenCore(
 
             Box(
                 modifier = Modifier
+                    .shadow(
+                        elevation = 4.dp,
+                        shape = RoundedCornerShape(16.dp),
+                        clip = false
+                    )
                     .fillMaxWidth()
-                    .border(1.dp, Color(0x1A000000), RoundedCornerShape(16.dp))
+//                    .border(1.dp, Color(0x1A000000), RoundedCornerShape(16.dp))
                     .background(Color.White, RoundedCornerShape(16.dp))
                     .padding(24.dp)
             ) {

@@ -10,7 +10,8 @@ data class HomeState(
     val isError: Boolean = false,
     val dailyHydration: DailyHydration? = null,
     val environment: Environment? = null,
-    val reminders: List<Reminder> = emptyList()
+    val reminders: List<Reminder> = emptyList(),
+    val dirtyWater: Boolean = false
 )
 
 data class Reminder(
