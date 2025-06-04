@@ -452,9 +452,9 @@ adb logcat -s "BleManager:D"
 
 ## 📞 연락처
 
-- **프로젝트 관리자**: [이름](mailto:email@example.com)
-- **개발팀**: [팀 이메일](mailto:team@example.com)
-- **이슈 추적**: [GitHub Issues](https://github.com/your-username/SmartBottle/issues)
+- **프로젝트 관리자**: [sejun0601](https://github.com/sejun0601)
+- **개발팀**: [팀 이메일](mailto:sejun0601@kaist.ac.kr)
+- **이슈 추적**: [GitHub Issues](https://github.com/CS30500/FrontEnd/issues)
 
 ## 🙏 감사의 말
 
