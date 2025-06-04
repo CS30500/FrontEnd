@@ -458,6 +458,8 @@ adb logcat -s "BleManager:D"
 
 ## 🙏 감사의 말
 
+- **CS30500 고인영 교수님**: 프로젝트 지도와 기술적 조언에 깊은 감사를 드립니다
+- **팀원들**: 함께 협력하여 SmartBottle 프로젝트를 완성한 모든 팀원들에게 감사합니다
 - Android Jetpack Compose 팀
 - Koin 의존성 주입 프레임워크
 - Ktor 네트워킹 라이브러리
