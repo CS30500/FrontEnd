@@ -452,7 +452,7 @@ adb logcat -s "BleManager:D"
 
 ## 📞 연락처
 
-- **프로젝트 관리자**: [sejun0601](https://github.com/sejun0601)
+- **프로젝트 관리자**: [박세준](https://github.com/sejun0601) /  [안영은](https://github.com/littlestar0261) / 이주영(https://github.com/leejuyoung0918)
 - **개발팀**: [팀 이메일](mailto:sejun0601@kaist.ac.kr)
 - **이슈 추적**: [GitHub Issues](https://github.com/CS30500/FrontEnd/issues)
 
